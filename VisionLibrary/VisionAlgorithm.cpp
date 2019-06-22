@@ -7389,6 +7389,28 @@ VisionStatus VisionAlgorithm::_findLineByCaliper(const cv::Mat &matInputImg, con
     UInt32 nBasePointCount = 0;
     auto matBaseMask = _pickColor(vecValue, matColorROI, pstCmd->nBaseColorDiff, pstCmd->nBaseGrayDiff, nBasePointCount);
 
+    // Remove the areas in between the two check ROIs to avoid the device is same color as backgroud
+    if (pstCmd->vecRectCheckROIs.size() >= 2) {
+        cv::Point topLft = pstCmd->vecRectCheckROIs[0].tl();
+        cv::Point btmRgt = pstCmd->vecRectCheckROIs[1].br();
+
+        // If the first ROI is on right or bottom
+        if (topLft.x < btmRgt.x) {
+            topLft = pstCmd->vecRectCheckROIs[1].tl();
+            btmRgt = pstCmd->vecRectCheckROIs[0].br();
+        }
+
+        topLft.x -= pstCmd->rectDeviceROI.x;
+        topLft.y -= pstCmd->rectDeviceROI.y;
+
+        btmRgt.x -= pstCmd->rectDeviceROI.x;
+        btmRgt.y -= pstCmd->rectDeviceROI.y;
+
+        cv::Rect rectMidle(topLft, btmRgt);
+        cv::Mat matOnDeviceROI(matBaseMask, rectMidle);
+        matOnDeviceROI.setTo(0);
+    }
+
     TimeLog::GetInstance()->addTimeLog("Pick color.", stopWatch.Span());
 
     if (!isAutoMode()) {
@@ -7819,6 +7841,79 @@ VisionStatus VisionAlgorithm::_findLineByCaliper(const cv::Mat &matInputImg, con
     return pstRpy->enStatus;
 }
 
+/*static*/ VisionStatus VisionAlgorithm::measureDist(const PR_MEASURE_DIST_CMD* const pstCmd, PR_MEASURE_DIST_RPY* const pstRpy) {
+    switch (pstCmd->enMeasureMode)
+    {
+    case PR_MEASURE_DIST_CMD::MODE::DIRECT_LINE:
+        pstRpy->fDistance = CalcUtils::distanceOf2Point(pstCmd->ptStart, pstCmd->ptEnd);
+        break;
+    case PR_MEASURE_DIST_CMD::MODE::X_DIRECTION:
+        if (fabs(pstCmd->fFiducialSlope) < 0.0001f) {
+            pstRpy->fDistance = fabs(pstCmd->ptStart.x - pstCmd->ptEnd.x);
+            pstRpy->ptCross = cv::Point2f(pstCmd->ptStart.x, pstCmd->ptEnd.y);
+            pstRpy->bMeasureWithStart = false;
+        }else {
+            pstRpy->ptCross = CalcUtils::calcDistPoint(pstCmd->ptStart, pstCmd->ptEnd, pstCmd->fFiducialSlope);
+            float tanWithStart = 0.f, tanWithEnd = 0.f;
+            if (fabs(pstCmd->ptStart.x - pstRpy->ptCross.x) < 0.0001f)
+                tanWithStart = 100000.f;
+            else
+                tanWithStart = (pstCmd->ptStart.y - pstRpy->ptCross.y) / (pstCmd->ptStart.x - pstRpy->ptCross.x);
+
+            if (fabs(pstCmd->ptEnd.x - pstRpy->ptCross.x) < 0.0001f)
+                tanWithEnd = 100000.f;
+            else
+                tanWithEnd = (pstCmd->ptEnd.y - pstRpy->ptCross.y) / (pstCmd->ptEnd.x - pstRpy->ptCross.x);
+
+            // Measure with the one follow the slope direction
+            if (fabs(fabs(tanWithStart) - fabs(pstCmd->fFiducialSlope)) <= fabs(fabs(tanWithEnd) - fabs(pstCmd->fFiducialSlope))) {
+                pstRpy->fDistance = CalcUtils::distanceOf2Point(pstRpy->ptCross, pstCmd->ptStart);
+                pstRpy->bMeasureWithStart = true;
+            }else {
+                pstRpy->fDistance = CalcUtils::distanceOf2Point(pstRpy->ptCross, pstCmd->ptEnd);
+                pstRpy->bMeasureWithStart = false;
+            }
+        }
+        break;
+    case PR_MEASURE_DIST_CMD::MODE::Y_DIRECTION:
+        if (fabs(pstCmd->fFiducialSlope) < 0.0001f) {
+            pstRpy->fDistance = fabs(pstCmd->ptStart.y - pstCmd->ptEnd.y);
+            pstRpy->ptCross = cv::Point2f(pstCmd->ptStart.x, pstCmd->ptEnd.y);
+            pstRpy->bMeasureWithStart = true;
+        }
+        else {
+            pstRpy->ptCross = CalcUtils::calcDistPoint(pstCmd->ptStart, pstCmd->ptEnd, pstCmd->fFiducialSlope);
+            float tanWithStart = 0.f, tanWithEnd = 0.f;
+            if (fabs(pstCmd->ptStart.x - pstRpy->ptCross.x) < 0.0001f)
+                tanWithStart = 100000.f;
+            else
+                tanWithStart = (pstCmd->ptStart.y - pstRpy->ptCross.y) / (pstCmd->ptStart.x - pstRpy->ptCross.x);
+
+            if (fabs(pstCmd->ptEnd.x - pstRpy->ptCross.x) < 0.0001f)
+                tanWithEnd = 100000.f;
+            else
+                tanWithEnd = (pstCmd->ptEnd.y - pstRpy->ptCross.y) / (pstCmd->ptEnd.x - pstRpy->ptCross.x);
+
+            // Measure with the perpendicular to the slope direction
+            float fPerpendicularSlope = -1.f / pstCmd->fFiducialSlope;
+            if (fabs(fabs(tanWithStart) - fabs(fPerpendicularSlope)) <= fabs(fabs(tanWithEnd) - fabs(fPerpendicularSlope))) {
+                pstRpy->fDistance = CalcUtils::distanceOf2Point(pstRpy->ptCross, pstCmd->ptStart);
+                pstRpy->bMeasureWithStart = true;
+            }else {
+                pstRpy->fDistance = CalcUtils::distanceOf2Point(pstRpy->ptCross, pstCmd->ptEnd);
+                pstRpy->bMeasureWithStart = false;
+            }
+
+            pstRpy->fDistance = CalcUtils::distanceOf2Point(pstRpy->ptCross, pstCmd->ptEnd);
+        }
+        break;
+    default:
+        break;
+    }
+    pstRpy->enStatus = VisionStatus::OK;
+    return pstRpy->enStatus;
+}
+
 /*static*/ VisionStatus VisionAlgorithm::crossSectionArea(const PR_CROSS_SECTION_AREA_CMD *const pstCmd, PR_CROSS_SECTION_AREA_RPY *const pstRpy) {
     auto contour = pstCmd->vecContourPoints;
     if (! pstCmd->bClosed) {
@@ -8081,10 +8176,15 @@ VisionStatus VisionAlgorithm::_findLineByCaliper(const cv::Mat &matInputImg, con
     double dMinValue = 0, dMaxValue = 0;
     cv::Mat matMask = (pstCmd->matHeight == pstCmd->matHeight);
     cv::minMaxIdx(pstCmd->matHeight, &dMinValue, &dMaxValue, 0, 0, matMask);
+    if (dMaxValue - dMinValue < 0.0001f) {
+        WriteLog("The input image is all zero.");
+        pstRpy->enStatus = VisionStatus::INVALID_PARAM;
+        return pstRpy->enStatus;
+    }
     
     cv::Mat matNewHeight = pstCmd->matHeight - dMinValue;
 
-    float dRatio = 255.f / ToFloat( dMaxValue - dMinValue );
+    float dRatio = 255.f / ToFloat(dMaxValue - dMinValue);
     matNewHeight = matNewHeight * dRatio;
 
     matNewHeight.convertTo(pstRpy->matGray, CV_8UC1);

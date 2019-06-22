@@ -2114,25 +2114,33 @@ The difference between original data and after function run data: 0.0000
 INSP 3D SOLDER REGRESSION TEST #1 STARTING
 --------------------------------------------
 PR_Insp3DSolder status 0
-Component height 0.518 Solder height 0.322, area 1264.000, ratio 0.144
-Component height 0.508 Solder height 0.238, area 1037.000, ratio 0.112
-The difference between original data and after function run data: 0.000
+Component height 0.52 Solder height 0.33, area 1279.00, ratio 0.15
+Component height 0.52 Solder height 0.25, area 1042.00, ratio 0.11
+The difference between original data and after function run data: 0.00
 
 --------------------------------------------
 INSP 3D SOLDER REGRESSION TEST #2 STARTING
 --------------------------------------------
 PR_Insp3DSolder status 0
-Component height 0.493 Solder height 0.306, area 287.000, ratio 0.136
-Component height 0.488 Solder height 0.357, area 202.000, ratio 0.123
-The difference between original data and after function run data: 0.000
+Component height 0.49 Solder height 0.31, area 287.00, ratio 0.14
+Component height 0.49 Solder height 0.36, area 202.00, ratio 0.12
+The difference between original data and after function run data: 0.00
 
 --------------------------------------------
 INSP 3D SOLDER REGRESSION TEST #3 STARTING
 --------------------------------------------
 PR_Insp3DSolder status 0
-Component height 0.552 Solder height 0.160, area 1493.000, ratio 0.089
-Component height 0.538 Solder height 0.286, area 1061.000, ratio 0.063
-The difference between original data and after function run data: 0.000
+Component height 0.55 Solder height 0.16, area 1494.00, ratio 0.09
+Component height 0.54 Solder height 0.29, area 1062.00, ratio 0.06
+The difference between original data and after function run data: 0.00
+
+--------------------------------------------
+INSP 3D SOLDER REGRESSION TEST #4 STARTING
+--------------------------------------------
+PR_Insp3DSolder status 0
+Component height 0.54 Solder height 0.29, area 1078.00, ratio 0.06
+Component height 0.55 Solder height 0.16, area 1503.00, ratio 0.09
+The difference between original data and after function run data: 0.00
 
 ---------------------------------------------
 CALC CAMERA MTF REGRESSION TEST #1 STARTING
