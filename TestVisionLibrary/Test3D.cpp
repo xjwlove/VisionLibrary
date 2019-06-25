@@ -1740,10 +1740,10 @@ void TestCalc4DLPHeight_SimulateMachine()
 
     std::cout << "PR_SetDlpParamsToGpu success" << std::endl;
 
-    std::string strParentFolder = "C:/Downloads/2019_06_14/Project_And_Work_Flow_Image/WorkFlowImage/";
+    std::string strParentFolder = "C:/Data/2019_06_04_New_3D_Scan_Image_mobile_board/Scan_Image_Frame_And_Big_Image/Frame_Image/";
     {
-        std::string strImageFolder = strParentFolder + "0/";
-        std::string strResultFolder = strParentFolder + "Frame_0_Result/";
+        std::string strImageFolder = strParentFolder + "0604132501/";
+        std::string strResultFolder = strParentFolder + "Frame_3_Result/";
 
         auto vecImages = ReadFrameImage(strImageFolder);
         if (vecImages.empty())
@@ -1751,7 +1751,7 @@ void TestCalc4DLPHeight_SimulateMachine()
 
         bool b3DDetectGaussionFilter = true;
         bool b3DDetectCaliUseThinPattern = true;
-        float phaseShift = 0.f;
+        float phaseShift = 0.1f;
         PR_CALC_MERGE_4_DLP_HEIGHT_CMD stCalc3DlpHeightCmd;
         PR_CALC_MERGE_4_DLP_HEIGHT_RPY stCalc3DlpHeightRpy;
         for (int dlp = 0; dlp < NUM_OF_DLP; ++dlp) {
@@ -1767,6 +1767,7 @@ void TestCalc4DLPHeight_SimulateMachine()
             stCalc3DlpHeightCmd.arrCalcHeightCmd[dlp].matThickToThinK = dlpBaseCalibResult.matThickToThinK;
             stCalc3DlpHeightCmd.arrCalcHeightCmd[dlp].matThickToThinnestK = dlpBaseCalibResult.matThickToThinnestK;
             stCalc3DlpHeightCmd.arrCalcHeightCmd[dlp].enProjectDir = static_cast<PR_DIRECTION>(dlpBaseCalibResult.nProjectDir);
+            std::cout << "Dlp " << dlp << ", project direction " << dlpBaseCalibResult.nProjectDir << std::endl;
             stCalc3DlpHeightCmd.arrCalcHeightCmd[dlp].enScanDir = static_cast<PR_DIRECTION>(dlpBaseCalibResult.nScanDir);
             stCalc3DlpHeightCmd.arrCalcHeightCmd[dlp].bReverseSeq = dlpBaseCalibResult.bReverseSeq;
 

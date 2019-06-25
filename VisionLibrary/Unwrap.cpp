@@ -19,6 +19,8 @@
 #define MARK_FUNCTION_START_TIME    CStopWatch      stopWatch; __int64 functionStart = stopWatch.AbsNow()
 #define MARK_FUNCTION_END_TIME      TimeLog::GetInstance()->addTimeLog( __FUNCTION__, stopWatch.AbsNow() - functionStart)
 
+static const std::string INTER_RESULT_FOLDER("C:/Data/2019_06_04_New_3D_Scan_Image_mobile_board/Scan_Image_Frame_And_Big_Image/Frame_Image/Frame_3_Result/");
+
 namespace AOI
 {
 namespace Vision
@@ -1089,6 +1091,11 @@ static inline cv::Mat calcOrder5BezierCoeff(const cv::Mat &matU) {
     float                    fHeightDiffThreshold,
     cv::cuda::Stream&        stream1,
     cv::cuda::Stream&        stream2) {
+
+    if (vecGpuMatHeight.size() != NUM_OF_DLP || vecGpuMatNanMask.size() != NUM_OF_DLP || vecProjDir.size() != NUM_OF_DLP || vecProjDir[0] == vecProjDir[1]) {
+        throw std::exception("Invalid parameters input to _merge4DlpHeightCore");
+    }
+
     cv::cuda::GpuMat matMerge1, matMerge2, matResultNan1, matResultNan2;
 
     matMerge1 = CudaAlgorithm::runMergeHeightIntersect(
@@ -1103,14 +1110,21 @@ static inline cv::Mat calcOrder5BezierCoeff(const cv::Mat &matU) {
         matResultNan1,
         stream1);
 
-    //cv::Mat matTmp1, matNanMaskCpu1;
-    //matMerge1.download(matTmp1);
-    //CalcUtils::saveMatToYml(matTmp1,
-    //    "C:/Data/3D_20190408/PCBFOV20190104/Frame_1_Result/Gpu_MergeResult_1.yml", "result");
-    //matResultNan1.download(matNanMaskCpu1);
-    //cv::imwrite("C:/Data/3D_20190408/PCBFOV20190104/Frame_1_Result/Gpu_MergeResult_Nan_1.png", matNanMaskCpu1);
-
     matMerge1.setTo(NAN, matResultNan1, stream1);
+
+    //{
+    //    cv::Mat matTmp1, matNanMaskCpu1;
+    //    matMerge1.download(matTmp1);
+    //    CalcUtils::saveMatToYml(matTmp1, INTER_RESULT_FOLDER + "Gpu_MergeResult_1.yml", "result");
+    //    PR_HEIGHT_TO_GRAY_CMD stCmd;
+    //    PR_HEIGHT_TO_GRAY_RPY stRpy;
+    //    stCmd.matHeight = matTmp1;
+    //    VisionAlgorithm::heightToGray(&stCmd, &stRpy);
+    //    cv::imwrite(INTER_RESULT_FOLDER + "Gpu_MergeResult_1_Gray.png", stRpy.matGray);
+
+    //    matResultNan1.download(matNanMaskCpu1);
+    //    cv::imwrite(INTER_RESULT_FOLDER + "Gpu_MergeResult_Nan_1.png", matNanMaskCpu1);
+    //}
 
     matMerge2 = CudaAlgorithm::runMergeHeightIntersect(
         vecGpuMatHeight[1],
@@ -1124,18 +1138,22 @@ static inline cv::Mat calcOrder5BezierCoeff(const cv::Mat &matU) {
         matResultNan2,
         stream2);
 
-    //cv::Mat matTmp2, matNanMaskCpu2;
-    //matMerge2.download(matTmp2);
-    //CalcUtils::saveMatToYml(matTmp2,
-    //    "C:/Data/3D_20190408/PCBFOV20190104/Frame_1_Result/Gpu_MergeResult_2.yml", "result");
-    //matResultNan2.download(matNanMaskCpu2);
-    //cv::imwrite("C:/Data/3D_20190408/PCBFOV20190104/Frame_1_Result/Gpu_MergeResult_Nan_2.png", matNanMaskCpu2);
-
     matMerge2.setTo(NAN, matResultNan2, stream2);
 
+    //{
+    //    cv::Mat matTmp2, matNanMaskCpu2;
+    //    matMerge2.download(matTmp2);
+    //    CalcUtils::saveMatToYml(matTmp2, INTER_RESULT_FOLDER + "Gpu_MergeResult_2.yml", "result");
+    //    PR_HEIGHT_TO_GRAY_CMD stCmd;
+    //    PR_HEIGHT_TO_GRAY_RPY stRpy;
+    //    stCmd.matHeight = matTmp2;
+    //    VisionAlgorithm::heightToGray(&stCmd, &stRpy);
+    //    cv::imwrite(INTER_RESULT_FOLDER + "Gpu_MergeResult_2_Gray.png", stRpy.matGray);
+    //    matResultNan2.download(matNanMaskCpu2);
+    //    cv::imwrite(INTER_RESULT_FOLDER + "Gpu_MergeResult_Nan_2.png", matNanMaskCpu2);
+    //}
+
     cudaDeviceSynchronize();
-    //auto matHm3 = _mergeHeightIntersect06(matHm1, matNan1, matHm2, matNan2, fHeightDiffThreshold * 2.f, vecProjDir[0]);
-    //auto matHm4 = _mergeHeightIntersect06(matHm1, matNan1, matHm2, matNan2, fHeightDiffThreshold * 2.f, vecProjDir[1]);
 
     auto& calc3DHeightVar0 = CudaAlgorithm::getCalc3DHeightVars(0);
     cv::cuda::GpuMat& matBufferGpu1 = calc3DHeightVar0.matAlpha;
@@ -1151,6 +1169,20 @@ static inline cv::Mat calcOrder5BezierCoeff(const cv::Mat &matU) {
         stream1);
 
     cudaDeviceSynchronize();
+
+    //{
+    //    cv::Mat matBufferCpu1, matBufferCpu2;
+    //    matBufferGpu1.download(matBufferCpu1);
+    //    matBufferGpu2.download(matBufferCpu2);
+    //    //CalcUtils::saveMatToYml(matBufferCpu1, INTER_RESULT_FOLDER + "Gpu_Patch_Result_1.yml", "result");
+    //    stCmd.matHeight = matBufferCpu1;
+    //    VisionAlgorithm::heightToGray(&stCmd, &stRpy);
+    //    cv::imwrite(INTER_RESULT_FOLDER + "Gpu_Patch_Result_1_Gray.png", stRpy.matGray);
+
+    //    stCmd.matHeight = matBufferCpu2;
+    //    VisionAlgorithm::heightToGray(&stCmd, &stRpy);
+    //    cv::imwrite(INTER_RESULT_FOLDER + "Gpu_Patch_Result_2_Gray.png", stRpy.matGray);
+    //}
 
     auto matMerge3 = CudaAlgorithm::runMergeHeightIntersect06(
         matBufferGpu1,
@@ -1172,15 +1204,23 @@ static inline cv::Mat calcOrder5BezierCoeff(const cv::Mat &matU) {
 
     cudaDeviceSynchronize();
 
-    //cv::Mat matTmp3;
-    //matMerge3.download(matTmp3);
-    //CalcUtils::saveMatToYml(matTmp3,
-    //    "C:/Data/3D_20190408/PCBFOV20190104/Frame_1_Result/Gpu_MergeResult_3.yml", "result");
+    //{
+    //    cv::Mat matTmp3;
+    //    matMerge3.download(matTmp3);
+    //    CalcUtils::saveMatToYml(matTmp3, INTER_RESULT_FOLDER + "Gpu_MergeResult_3.yml", "result");
+    //    PR_HEIGHT_TO_GRAY_CMD stCmd;
+    //    PR_HEIGHT_TO_GRAY_RPY stRpy;
+    //    stCmd.matHeight = matTmp3;
+    //    VisionAlgorithm::heightToGray(&stCmd, &stRpy);
+    //    cv::imwrite(INTER_RESULT_FOLDER + "Gpu_MergeResult_3_Gray.png", stRpy.matGray);
 
-    //cv::Mat matTmp4;
-    //matMerge4.download(matTmp4);
-    //CalcUtils::saveMatToYml(matTmp4,
-    //    "C:/Data/3D_20190408/PCBFOV20190104/Frame_1_Result/Gpu_MergeResult_4.yml", "result");
+    //    cv::Mat matTmp4;
+    //    matMerge4.download(matTmp4);
+    //    CalcUtils::saveMatToYml(matTmp4, INTER_RESULT_FOLDER + "Gpu_MergeResult_4.yml", "result");
+    //    stCmd.matHeight = matTmp4;
+    //    VisionAlgorithm::heightToGray(&stCmd, &stRpy);
+    //    cv::imwrite(INTER_RESULT_FOLDER + "Gpu_MergeResult_4_Gray.png", stRpy.matGray);
+    //}
 
     cv::cuda::addWeighted(matMerge3, 0.5f, matMerge4, 0.5f, 0, matMerge1);
 
@@ -1216,8 +1256,9 @@ static inline cv::Mat calcOrder5BezierCoeff(const cv::Mat &matU) {
     for (int dlp = 0; dlp < NUM_OF_DLP; ++dlp) {
         for (size_t i = 0; i < vecConvertedImgs[dlp].size(); ++i) {
             CudaAlgorithm::m_arrVecGpuMat[dlp][i].upload(vecConvertedImgs[dlp][i], arrStreams[dlp]);
-            vecProjDir.push_back(pstCmd->arrCalcHeightCmd[dlp].enProjectDir);
         }
+
+        vecProjDir.push_back(pstCmd->arrCalcHeightCmd[dlp].enProjectDir);
     }
 
     for (int dlp = 0; dlp < NUM_OF_DLP; ++dlp) {
@@ -1234,15 +1275,15 @@ static inline cv::Mat calcOrder5BezierCoeff(const cv::Mat &matU) {
     cudaDeviceSynchronize();
     TimeLog::GetInstance()->addTimeLog("After calculate 4 DLP height", stopWatch.Span());
 
-    //TimeLog::GetInstance()->addTimeLog("After download 4 DLP height and nan mask", stopWatch.Span());
     //for (int dlp = 0; dlp < NUM_OF_DLP; ++dlp) {
+    //    CalcUtils::saveMatToCsv(vecHeights[dlp], INTER_RESULT_FOLDER + "Dlp_Height_" + std::to_string(dlp + 1) + ".csv");
+
     //    PR_HEIGHT_TO_GRAY_CMD stCmd;
     //    PR_HEIGHT_TO_GRAY_RPY stRpy;
     //    stCmd.matHeight = vecHeights[dlp];
     //    VisionAlgorithm::heightToGray(&stCmd, &stRpy);
-    //    std::string strResultFolder("C:/Data/3D_20190408/PCBFOV20190104/Frame_1_Result/");
-    //    cv::imwrite(strResultFolder + "Dlp_" + std::to_string(dlp + 1) + "_HeightGray.png", stRpy.matGray);
-    //    cv::imwrite(strResultFolder + "Dlp_" + std::to_string(dlp + 1) + "_NanMask.png", vecNanMasks[dlp]);
+    //    cv::imwrite(INTER_RESULT_FOLDER + "Dlp_" + std::to_string(dlp + 1) + "_HeightGray.png", stRpy.matGray);
+    //    cv::imwrite(INTER_RESULT_FOLDER + "Dlp_" + std::to_string(dlp + 1) + "_NanMask.png", vecNanMasks[dlp]);
     //}
 
     //pstRpy->matHeight = _merge4DlpHeightCore(vecHeights, vecNanMasks, vecProjDir, pstCmd->fHeightDiffThreshold);
@@ -3787,7 +3828,6 @@ void _saveAsGray(const cv::Mat &matHeight, const std::string &strFilePath) {
 
     //matHeightTwo.copyTo(matHeightOne, matNanMaskOne);
     //matHeightOne.copyTo(matHeightTwo, matNanMaskTwo);
-
     if (PR_DIRECTION::UP == enProjDir || PR_DIRECTION::DOWN == enProjDir) {
         cv::transpose(matHeightOne, matHeightOne);
         cv::transpose(matHeightTwo, matHeightTwo);
