@@ -1019,6 +1019,9 @@ static inline cv::Mat calcOrder5BezierCoeff(const cv::Mat &matU) {
     }
 
     matBufferGpu.setTo(NAN, matAvgUnderTolIndexGpu, stream);
+
+    // Compensate dlp height offset
+    cv::cuda::add(matBufferGpu, pstCmd->fHeightOffset, matBufferGpu, cv::cuda::GpuMat(), -1, stream);
     matNanMask = matAvgUnderTolIndexGpu;
     return matBufferGpu;
 }
@@ -1088,7 +1091,8 @@ static inline cv::Mat calcOrder5BezierCoeff(const cv::Mat &matU) {
     VectorOfGpuMat&          vecGpuMatHeight,
     VectorOfGpuMat&          vecGpuMatNanMask,
     const VectorOfDirection& vecProjDir,
-    float                    fHeightDiffThreshold,
+    float                    fHeightDiffThreshold1,
+    float                    fHeightDiffThreshold2,
     cv::cuda::Stream&        stream1,
     cv::cuda::Stream&        stream2) {
 
@@ -1105,7 +1109,7 @@ static inline cv::Mat calcOrder5BezierCoeff(const cv::Mat &matU) {
         vecGpuMatNanMask[2],
         CudaAlgorithm::getCalc3DHeightVars(0),
         CudaAlgorithm::getCalc3DHeightVars(2),
-        fHeightDiffThreshold,
+        fHeightDiffThreshold1,
         vecProjDir[0],
         matResultNan1,
         stream1);
@@ -1133,7 +1137,7 @@ static inline cv::Mat calcOrder5BezierCoeff(const cv::Mat &matU) {
         vecGpuMatNanMask[3],
         CudaAlgorithm::getCalc3DHeightVars(1),
         CudaAlgorithm::getCalc3DHeightVars(3),
-        fHeightDiffThreshold,
+        fHeightDiffThreshold1,
         vecProjDir[1],
         matResultNan2,
         stream2);
@@ -1189,7 +1193,7 @@ static inline cv::Mat calcOrder5BezierCoeff(const cv::Mat &matU) {
         matBufferGpu2,
         CudaAlgorithm::getCalc3DHeightVars(0),
         CudaAlgorithm::getCalc3DHeightVars(2),
-        fHeightDiffThreshold * 2.f,
+        fHeightDiffThreshold2,
         vecProjDir[0],
         stream1);
 
@@ -1198,7 +1202,7 @@ static inline cv::Mat calcOrder5BezierCoeff(const cv::Mat &matU) {
         matBufferGpu2,
         CudaAlgorithm::getCalc3DHeightVars(1),
         CudaAlgorithm::getCalc3DHeightVars(3),
-        fHeightDiffThreshold * 2.f,
+        fHeightDiffThreshold2,
         vecProjDir[1],
         stream2);
 
@@ -1287,8 +1291,8 @@ static inline cv::Mat calcOrder5BezierCoeff(const cv::Mat &matU) {
     //}
 
     //pstRpy->matHeight = _merge4DlpHeightCore(vecHeights, vecNanMasks, vecProjDir, pstCmd->fHeightDiffThreshold);
-    auto matResultGpu = _merge4DlpHeightCore(vecGpuHeights, vecGpuNanMasks, vecProjDir, pstCmd->fHeightDiffThreshold,
-        arrStreams[0], arrStreams[1]);
+    auto matResultGpu = _merge4DlpHeightCore(vecGpuHeights, vecGpuNanMasks, vecProjDir,
+        pstCmd->fHeightDiffThreshold1, pstCmd->fHeightDiffThreshold2, arrStreams[0], arrStreams[1]);
     matResultGpu.download(pstRpy->matHeight);
     pstRpy->enStatus = VisionStatus::OK;
 }

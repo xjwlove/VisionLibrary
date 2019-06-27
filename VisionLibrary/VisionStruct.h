@@ -1382,7 +1382,10 @@ struct PR_CALC_3D_HEIGHT_GPU_CMD {
         fBaseRangeMin(0.25f),
         fBaseRangeMax(0.45f),
         nRemoveJumpSpan(7),
-        nCompareRemoveJumpSpan(15) {}
+        nCompareRemoveJumpSpan(15),
+        fHeightOffset(0.f),
+        fMaxPhase(6),
+        fMinPhase(-6){}
     VectorOfMat             vecInputImgs;
     int                     nDlpNo;
     bool                    bEnableGaussianFilter;
@@ -1399,6 +1402,7 @@ struct PR_CALC_3D_HEIGHT_GPU_CMD {
     cv::Mat                 matPhaseToHeightK;       //The factor to convert phase to height. This is the single group of image calibration result.
     int                     nRemoveJumpSpan;         //The phase jump span in X and Y direction under this value in beta phase will be removed.
     int                     nCompareRemoveJumpSpan;  //The compared phase jump span in X and Y direction under this value in gamma phase will be removed.
+    float                   fHeightOffset;           //The height offset is to compensate the height differences of dlps, it is from dlp height offset calibration.
     //Below 2 parameters are result of PR_MotorCalib3D, they are calibrated from positive, negative and H = 5mm surface phase. If these 2 parameters are used, then matPhaseToHeightK will be ignored.
     float                   fMaxPhase;
     float                   fMinPhase;
@@ -1423,8 +1427,12 @@ struct PR_MERGE_3D_HEIGHT_RPY {
 };
 
 struct PR_CALC_MERGE_4_DLP_HEIGHT_CMD {
+    PR_CALC_MERGE_4_DLP_HEIGHT_CMD() :
+        fHeightDiffThreshold1(0.1f),
+        fHeightDiffThreshold2(0.2f) {}
     PR_CALC_3D_HEIGHT_GPU_CMD arrCalcHeightCmd[NUM_OF_DLP];
-    float                   fHeightDiffThreshold;   //The height difference threshold. Unit mm. If height difference less than it, the result height is average of the input height. If larger than it, the result height use the small height.
+    float                   fHeightDiffThreshold1;   //The height difference threshold. Unit mm. If height difference less than it, the result height is average of the input height. If larger than it, the result height use the small height.
+    float                   fHeightDiffThreshold2;   //The second time merge
 };
 
 struct PR_CALC_MERGE_4_DLP_HEIGHT_RPY {

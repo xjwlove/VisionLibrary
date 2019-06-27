@@ -1577,7 +1577,8 @@ void TestCalc4DLPHeightOnePass()
         stCalc4DlpHeightCmd.arrCalcHeightCmd[nDlp].vecInputImgs = VectorOfMat(vecImages.begin() + nDlp * IMAGE_COUNT, vecImages.begin() + (nDlp + 1) * IMAGE_COUNT);
     }
 
-    stCalc4DlpHeightCmd.fHeightDiffThreshold = 0.1f;
+    stCalc4DlpHeightCmd.fHeightDiffThreshold1 = 0.1f;
+    stCalc4DlpHeightCmd.fHeightDiffThreshold2 = 0.2f;
 
     //SaveCalcMergeHeightData(stSetDlpCmd, stCalc4DlpHeightCmd);
 
@@ -1779,7 +1780,8 @@ void TestCalc4DLPHeight_SimulateMachine()
             stCalc3DlpHeightCmd.arrCalcHeightCmd[dlp].vecInputImgs = VectorOfMat(vecImages.begin() + dlp * IMAGE_COUNT, vecImages.begin() + (dlp + 1) * IMAGE_COUNT);
         }
 
-        stCalc3DlpHeightCmd.fHeightDiffThreshold = 0.1f;
+        stCalc3DlpHeightCmd.fHeightDiffThreshold1 = 0.1f;
+        stCalc3DlpHeightCmd.fHeightDiffThreshold2 = 0.1f;
 
         PR_CalcMerge4DlpHeight(&stCalc3DlpHeightCmd, &stCalc3DlpHeightRpy);
         if (stCalc3DlpHeightRpy.enStatus != VisionStatus::OK)
@@ -1974,7 +1976,8 @@ void TestScanImage() {
         fsIntegrated.release();
     }
 
-    stCalc4DlpHeightCmd.fHeightDiffThreshold = 0.1f;
+    stCalc4DlpHeightCmd.fHeightDiffThreshold1 = 0.1f;
+    stCalc4DlpHeightCmd.fHeightDiffThreshold2 = 0.1f;
 
     for (int col = 0; col < COLS; ++col) {
         auto vecImages = ReadFrameImage(strImageFolder[col]);
