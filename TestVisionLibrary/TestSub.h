@@ -79,6 +79,7 @@ void TestCalcFrameValue_2();
 void TestCalc4DLPHeight();
 void TestCalc4DLPHeightOnePass();
 void TestCalc4DLPHeight_SimulateMachine();
+void TestSimulateDlpHeightOffsetCalib();
 void TestScanImage();
 
 void VeryHeightMergeResult();

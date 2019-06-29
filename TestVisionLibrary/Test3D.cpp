@@ -7,6 +7,8 @@
 #include <fstream>
 #include <thread>
 #include <atomic>
+#include <iomanip>
+
 #include "TestSub.h"
 
 #include "../VisionLibrary/VisionAPI.h"
@@ -1224,7 +1226,7 @@ void TestCalc4DLPHeightOffset()
 
 void TestCalc4DLPHeight()
 {
-    std::string strParentFolder = "C:/Data/2019_06_04_New_3D_Scan_Image/Scan_Image_Frame_And_Big_Image/Frame_Image/";
+    std::string strParentFolder = "C:/Data/2019_06_04_New_3D_Scan_Image_mobile_board/Scan_Image_Frame_And_Big_Image/Frame_Image/";
     std::string strImageFolder = strParentFolder + "0604132502/";
     std::string strResultFolder = strParentFolder + "Frame_4_Result/";
 
@@ -1865,6 +1867,106 @@ void TestCalc4DLPHeight_SimulateMachine()
     //    cv::imwrite(strResultFolder + "Final_HeightGray_Grid.png", _drawHeightGrid(stCalc3DlpHeightRpy.matHeight, 10, 10));
     //    std::cout << "Success to calculate 4 DLP height" << std::endl;
     //}
+
+    PR_ClearDlpParams();
+}
+
+void TestSimulateDlpHeightOffsetCalib()
+{
+    _loadDlpCalibResult();
+
+    PR_SET_DLP_PARAMS_TO_GPU_CMD stSetDlpParamsCmd;
+    PR_SET_DLP_PARAMS_TO_GPU_RPY stSetDlpParamsRpy;
+    for (int dlp = 0; dlp < NUM_OF_DLP; ++dlp) {
+        stSetDlpParamsCmd.vecMatAlphaBase[dlp] = m_arrDlpBaseCalibResult[dlp].matBaseWrappedAlpha;
+        stSetDlpParamsCmd.vecMatBetaBase[dlp] = m_arrDlpBaseCalibResult[dlp].matBaseWrappedBeta;
+        stSetDlpParamsCmd.vecMatGammaBase[dlp] = m_arrDlpBaseCalibResult[dlp].matBaseWrappedGamma;
+        stSetDlpParamsCmd.vec3DBezierSurface[dlp] = m_arrDlpHeightCalibResult[dlp].mat3DBezierSurface;
+    }
+
+    PR_SetDlpParamsToGpu(&stSetDlpParamsCmd, &stSetDlpParamsRpy);
+
+    if (stSetDlpParamsRpy.enStatus != VisionStatus::OK) {
+        std::cout << "PR_SetDlpParamsToGpu failed" << std::endl;
+        return;
+    }
+
+    std::cout << "PR_SetDlpParamsToGpu success" << std::endl;
+
+    bool b3DDetectCaliUseThinPattern = true;
+    bool b3DDetectGaussionFilter = true;
+    double d3DDetectMinIntDiff = 3;
+    double d3DDetectPhaseShift = 0;
+    const int DLP_IMAGE_COUNT = 12;
+
+    std::string strParentFolder = "C:/Data/2019_06_06_Auto_Insp_Result_Window_Problem/WorkFlowImage/";//"C:/Downloads/2019_06_28_Dlp_Height_Offset_Calib/";
+    const int ROWS = 5;
+    const int COLS = 3;
+    std::cout << std::fixed << std::setprecision(3);
+    for (int row = 0; row < ROWS; ++ row) {
+        for (int col = 0; col < COLS; ++ col) {
+            int index = col + row * COLS;
+            std::string strImageFolder = strParentFolder + std::to_string(index) + "/";
+
+            auto vecImages = ReadFrameImage(strImageFolder);
+            if (vecImages.empty())
+                return;
+
+            cv::Mat arrHeight[NUM_OF_DLP];
+            for (int dlp = 0; dlp < NUM_OF_DLP; ++ dlp) {
+                PR_CALC_3D_HEIGHT_GPU_CMD stCalc3DGpuCmd;
+                PR_CALC_3D_HEIGHT_RPY stCalc3DGpuRpy;
+
+                stCalc3DGpuCmd.bEnableGaussianFilter = b3DDetectGaussionFilter;
+                stCalc3DGpuCmd.fMinAmplitude = d3DDetectMinIntDiff;
+                stCalc3DGpuCmd.bUseThinnestPattern = b3DDetectCaliUseThinPattern;
+                stCalc3DGpuCmd.fPhaseShift = d3DDetectPhaseShift;
+                stCalc3DGpuCmd.fHeightOffset = 0.f;
+                //stCalc3DGpuCmd.nRemoveJumpSpan = 0;
+                //stCalc3DGpuCmd.nCompareRemoveJumpSpan = 0;
+                stCalc3DGpuCmd.fBaseRangeMin = 0.03f;
+                stCalc3DGpuCmd.fBaseRangeMin = 0.1f;
+
+                const auto& dlpBaseCalibResult = m_arrDlpBaseCalibResult[dlp];
+                stCalc3DGpuCmd.matThickToThinK = dlpBaseCalibResult.matThickToThinK;
+                stCalc3DGpuCmd.matThickToThinnestK = dlpBaseCalibResult.matThickToThinnestK;
+                stCalc3DGpuCmd.enProjectDir = static_cast<PR_DIRECTION>(dlpBaseCalibResult.nProjectDir);
+                stCalc3DGpuCmd.enScanDir = static_cast<PR_DIRECTION>(dlpBaseCalibResult.nScanDir);
+                stCalc3DGpuCmd.bReverseSeq = dlpBaseCalibResult.bReverseSeq;
+                stCalc3DGpuCmd.nDlpNo = dlp;
+
+                const auto& dlpHeightCalibResult = m_arrDlpHeightCalibResult[dlp];
+                stCalc3DGpuCmd.mat3DBezierK = dlpHeightCalibResult.mat3DBezierK;
+                stCalc3DGpuCmd.fMaxPhase = dlpHeightCalibResult.fMaxPhase;
+                stCalc3DGpuCmd.fMinPhase = dlpHeightCalibResult.fMinPhase;
+
+                stCalc3DGpuCmd.vecInputImgs = VectorOfMat(vecImages.begin() + dlp * DLP_IMAGE_COUNT, vecImages.begin() + dlp * DLP_IMAGE_COUNT + DLP_IMAGE_COUNT);
+
+                VisionStatus retStatus = PR_Calc3DHeightGpu(&stCalc3DGpuCmd, &stCalc3DGpuRpy);
+                if (VisionStatus::OK != retStatus) {
+                    std::cout << "PR_Calc3DHeightGpu failed, status " << ToInt32(retStatus) << std::endl;
+                    return;
+                }
+
+                stCalc3DGpuRpy.matHeight.setTo(NAN, stCalc3DGpuRpy.matNanMask);
+                arrHeight[dlp] = stCalc3DGpuRpy.matHeight;
+            }
+
+            PR_CALC_DLP_OFFSET_CMD stCmd;
+            PR_CALC_DLP_OFFSET_RPY stRpy;
+            stCmd.matHeight1 = arrHeight[0];
+            stCmd.matHeight2 = arrHeight[1];
+            stCmd.matHeight3 = arrHeight[2];
+            stCmd.matHeight4 = arrHeight[3];
+
+            if (VisionStatus::OK != PR_CalcDlpOffset(&stCmd, &stRpy)) {
+                std::cout << "PR_CalcDlpOffset failed, status " << ToInt32(stRpy.enStatus) << std::endl;
+                return;
+            }
+
+            std::cout << "row " << row << " col " << col << " Offset " << stRpy.fOffset1 << " " << stRpy.fOffset2 << " " << stRpy.fOffset3 << " " << stRpy.fOffset4 << std::endl;
+        }
+    }
 
     PR_ClearDlpParams();
 }
