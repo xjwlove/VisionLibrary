@@ -121,7 +121,8 @@ private:
         VectorOfGpuMat&          vecGpuMatHeight,
         VectorOfGpuMat&          vecGpuMatNanMask,
         const VectorOfDirection& vecProjDir,
-        float                    fHeightDiffThreshold,
+        float                    fHeightDiffThreshold1,
+        float                    fHeightDiffThreshold2,
         cv::cuda::Stream&        stream1, 
         cv::cuda::Stream&        stream2);
 

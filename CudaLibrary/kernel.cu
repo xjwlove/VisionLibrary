@@ -1070,6 +1070,8 @@ void kernel_merge_height_intersect(
     int start = blockIdx.x * blockDim.x + threadIdx.x;
     int stride = blockDim.x * gridDim.x;
 
+    //const int DEBUG_ROW = 677;
+
     for (int row = start; row < ROWS; row += stride) {
         int offset = row * step;
         auto matOneRow = matOne + offset;
@@ -1121,12 +1123,36 @@ void kernel_merge_height_intersect(
             }
 
             float *matChoose;
-            if (fAbsDiffSumOne <= fAbsDiffSumTwo && fAbsDiffSumOne <= fAbsDiffSumTre)
-                matChoose = matOneRow;
-            else if (fAbsDiffSumTwo <= fAbsDiffSumOne && fAbsDiffSumTwo <= fAbsDiffSumTre)
-                matChoose = matTwoRow;
-            else
-                matChoose = matTreRow;
+            // This is to check if fAbsDiffSumOne or fAbsDiffSumTwo is nan or not.
+            // If it is, then choose the one which is not nan, if both are nan, choose the average
+            if (fAbsDiffSumOne != fAbsDiffSumOne || fAbsDiffSumTwo != fAbsDiffSumTwo) {
+                if (fAbsDiffSumOne == fAbsDiffSumOne) {
+                    matChoose = matOneRow;
+                }else if (fAbsDiffSumTwo == fAbsDiffSumTwo) {
+                    matChoose = matTwoRow;
+                }else {
+                    matChoose = matTreRow;
+                }
+            }else {
+                if (fAbsDiffSumOne <= fAbsDiffSumTwo && fAbsDiffSumOne <= fAbsDiffSumTre) {
+                    matChoose = matOneRow;
+                }
+                else if (fAbsDiffSumTwo <= fAbsDiffSumOne && fAbsDiffSumTwo <= fAbsDiffSumTre) {
+                    matChoose = matTwoRow;
+                }
+                else {
+                    matChoose = matTreRow;
+                }
+            }
+
+            //if (DEBUG_ROW == row) {
+            //    printf("row = %d, startIndex = %d, endIndex = %d, choose %d\n", row, startIndex, endIndex, chooseTarget);
+            //    printf("fAbsDiffSumOne = %.3f, fAbsDiffSumTwo = %.3f, fAbsDiffSumTre = %.3f\n", fAbsDiffSumOne, fAbsDiffSumTwo, fAbsDiffSumTre);
+            //    for (int col = startIndex; col <= endIndex; ++col) {
+            //        printf("%.3f ", matChoose[col]);
+            //    }
+            //    printf("\n");
+            //}
 
             for (int col = startIndex; col <= endIndex; ++col) {
                 matForRow[col] = matChoose[col];
@@ -1172,8 +1198,6 @@ void cpu_kernel_merge_height_intersect(
 
         if (matNanRow[COLS - 1] > 0)
             arrayIndexs[count++] = COLS - 1;
-
-        printf("row = %d count = %d\n", row, count);
 
         for (int i = 0; i < count / 2; ++i) {
             int startIndex = arrayIndexs[i * 2];

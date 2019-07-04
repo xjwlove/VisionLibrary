@@ -9,6 +9,9 @@
 #include "CalcUtils.hpp"
 #include "Constants.h"
 #include "Log.h"
+#include "VisionAlgorithm.h"
+
+//static const std::string INTER_RESULT_FOLDER("C:/Data/2019_06_04_New_3D_Scan_Image_mobile_board/Scan_Image_Frame_And_Big_Image/Frame_Image/Frame_3_Result/");
 
 namespace AOI
 {
@@ -1228,9 +1231,45 @@ static int divUp(int total, int grain)
     CudaAlgorithm::phasePatch(matBufferGpu1,      matNanMaskOne, PR_DIRECTION::UP,   stream);
     CudaAlgorithm::phasePatch(matHeightOneInput,  matNanMaskOne, PR_DIRECTION::DOWN, stream); // matHeightOneInput is matH10
 
+    auto matHeightTwoInputClone = matHeightTwoInput.clone();
+
     matHeightTwoInput.copyTo(matBufferGpu2, stream); // matBufferGpu2 is matH22
     CudaAlgorithm::phasePatch(matBufferGpu2,      matNanMaskTwo, PR_DIRECTION::LEFT,  stream);
     CudaAlgorithm::phasePatch(matHeightTwoInput,  matNanMaskTwo, PR_DIRECTION::RIGHT, stream); // matHeightTwoInput is matH20
+
+    //{
+    //    cv::Mat matH11, matH10, matH22Clone, matH22, matH20;
+    //    matBufferGpu1.download(matH11);
+    //    matHeightOneInput.download(matH10);
+    //    matBufferGpu2.download(matH22);
+    //    matHeightTwoInput.download(matH20);
+
+    //    PR_HEIGHT_TO_GRAY_CMD stCmd;
+    //    PR_HEIGHT_TO_GRAY_RPY stRpy;
+    //    stCmd.matHeight = matH11;
+    //    VisionAlgorithm::heightToGray(&stCmd, &stRpy);
+    //    cv::imwrite(INTER_RESULT_FOLDER + "Patch_Tmp_Result_H11_Gray.png", stRpy.matGray);
+
+    //    stCmd.matHeight = matH10;
+    //    VisionAlgorithm::heightToGray(&stCmd, &stRpy);
+    //    cv::imwrite(INTER_RESULT_FOLDER + "Patch_Tmp_Result_H10_Gray.png", stRpy.matGray);
+
+    //    matHeightTwoInputClone.download(matH22Clone);
+    //    stCmd.matHeight = matH22Clone;
+    //    VisionAlgorithm::heightToGray(&stCmd, &stRpy);
+    //    CalcUtils::saveMatToCsv(matH22Clone, INTER_RESULT_FOLDER + "H22_Before_Patch.csv");
+    //    cv::imwrite(INTER_RESULT_FOLDER + "Patch_Tmp_Result_H22_Before_Patch_Gray.png", stRpy.matGray);
+
+    //    stCmd.matHeight = matH22;
+    //    VisionAlgorithm::heightToGray(&stCmd, &stRpy);
+    //    CalcUtils::saveMatToCsv(matH22, INTER_RESULT_FOLDER + "H22_Patch_Left.csv");
+    //    cv::imwrite(INTER_RESULT_FOLDER + "Patch_Tmp_Result_H22_Gray.png", stRpy.matGray);
+
+    //    stCmd.matHeight = matH20;
+    //    VisionAlgorithm::heightToGray(&stCmd, &stRpy);
+    //    CalcUtils::saveMatToCsv(matH20, INTER_RESULT_FOLDER + "H22_Patch_Right.csv");
+    //    cv::imwrite(INTER_RESULT_FOLDER + "Patch_Tmp_Result_H20_Gray.png", stRpy.matGray);
+    //}
 
     chooseMinValueForMask(matBufferGpu1, matHeightOneInput, matBufferGpu2, matNanMaskOne, stream);
     chooseMinValueForMask(matBufferGpu2, matHeightTwoInput, matBufferGpu1, matNanMaskTwo, stream);
