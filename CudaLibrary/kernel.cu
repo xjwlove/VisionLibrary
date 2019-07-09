@@ -188,7 +188,18 @@ __device__ void cdp_simple_quicksort(T *data, int left, int right, int depth)
 // Call the quicksort kernel from the host.
 ////////////////////////////////////////////////////////////////////////////////
 template<typename T>
-__global__ void kernel_qsort(T *data, unsigned int nitems)
+__global__
+void kernel_qsort(T *data, unsigned int nitems)
+{
+    // Launch on device
+    int left = 0;
+    int right = nitems - 1;
+    cdp_simple_quicksort(data, left, right, 0);
+}
+
+template<typename T>
+__device__
+void device_kernel_qsort(T *data, unsigned int nitems)
 {
     // Launch on device
     int left = 0;
@@ -815,6 +826,152 @@ void run_kernel_range_interval_average(
 
     cudaEventRecord(eventDone, cudaStream);
     cudaEventSynchronize(eventDone);
+}
+
+__global__
+void kernel_get_base_from_grid(
+    const float* data,
+    float* baseResult,
+    uint32_t step,
+    const int ROWS,
+    const int COLS,
+    const int gridX,
+    const int gridY,
+    float* buffer,
+    float* buffer1,
+    float* buffer2)
+{
+    int ii = blockIdx.x * blockDim.x + threadIdx.x;
+    int jj = blockIdx.y * blockDim.y + threadIdx.y;
+
+    if (ii >= gridX || jj >= gridY)
+        return;
+
+    bool bDebug = false; //ii == 0 && jj == 0;
+
+    const int GRID_INDEX = jj * gridX + ii;
+
+    float gridSizeX = float(COLS - 1) / gridX;
+    float gridSizeY = float(ROWS - 1) / gridY;
+    int marginX = ceil(COLS / gridX * 0.15f);
+    int marginY = ceil(ROWS / gridY * 0.15f);
+
+    const int PICK_POINT_INTERVAL = 2;
+    int bufferStep = (gridSizeX + 2 * marginX) * (gridSizeY + 2 * marginY) / PICK_POINT_INTERVAL / PICK_POINT_INTERVAL;
+    bufferStep = ceil(float(bufferStep) / 1024 * 1024); // Round to can divide by 1024 to make memory can be aligned with pitch
+
+    float* myBuffer = buffer + GRID_INDEX * bufferStep;
+
+    int xStart = max((int)ceil(ii * gridSizeX - marginX), 0);
+    int xEnd = min((int)ceil((ii + 1) * gridSizeX + marginX), COLS);
+
+    int yStart = max((int)ceil(jj * gridSizeY - marginY), 0);
+    int yEnd = min((int)ceil((jj + 1) * gridSizeY + marginY), ROWS);
+
+    if (bDebug) {
+        printf("xStart = %d, xEnd = %d, yStart = %d, yEnd = %d\n", xStart, xEnd, yStart, yEnd);
+    }
+
+    int count = 0;
+    for (int y = yStart; y < yEnd; y += PICK_POINT_INTERVAL) {
+        for (int x = xStart; x < xEnd; x += PICK_POINT_INTERVAL) {
+            myBuffer[count++] = *(data + y * step + x);
+        }
+    }
+
+    device_kernel_qsort(myBuffer, count);
+
+    int lenxy = ceil(gridSizeX) * ceil(gridSizeY) / PICK_POINT_INTERVAL / PICK_POINT_INTERVAL;
+    if (bDebug) {
+        printf("Count = %d, lenxy = %d\n", count, lenxy);
+    }
+
+    float* betatmp3 = buffer1 + 256 * GRID_INDEX;
+    int pickCount = 0;
+    for (int i = lenxy / 100; i < lenxy; i += lenxy / 100) {
+        betatmp3[pickCount++] = myBuffer[i];
+    }
+
+    if (bDebug) {
+        printf("Picked out point after sort\n");
+        for (int i = 0; i < pickCount; i ++) {
+            printf("%.2f ", betatmp3[i]);
+        }
+        printf("\n");
+    }
+
+    float* betaDiff = buffer2 + 256 * GRID_INDEX;
+    betaDiff[0] = 0.f;
+    for (int i = 1; i < pickCount; ++i)
+        betaDiff[i] = betatmp3[i] - betatmp3[i - 1];
+
+    int checkStart = 0;
+    for (int i = 2; i < 50; ++i) {
+        if (betaDiff[i] < 0.1f && betaDiff[i + 1] < 0.1 && betaDiff[i + 2] < 0.1 && betaDiff[i + 3] < 0.1) {
+            checkStart = i;
+            break;
+        }
+    }
+
+    if (bDebug) {
+        printf("checkStart = %d\n", checkStart);
+    }
+
+    int sumCount = 0; float sum = 0.f;
+    if (checkStart != 0) {
+        for (int i = checkStart; i < checkStart + 8; ++i) {
+            if (betaDiff[i] < 0.1f) {
+                sumCount++;
+                sum += betatmp3[i];
+            }
+        }
+    }
+    else {
+        for (int i = 2; i < 10; ++i) {
+            sumCount++;
+            sum += betatmp3[i];
+        }
+    }
+
+    float meanValue = sum / sumCount;
+
+    if (bDebug) {
+        printf("sum = %.2f, sumCount = %d, meanValue = %.2f\n", sum, sumCount, meanValue);
+    }
+
+    for (int y = ceil(gridSizeY * jj); y < ceil(gridSizeY * (jj + 1)); ++y) {
+        for (int x = ceil(gridSizeX * ii); x < ceil(gridSizeX *(ii + 1)); ++x) {
+            *(baseResult + y * step + x) = meanValue;
+        }
+    }
+}
+
+void run_kernel_get_base_from_grid(
+    dim3 grid,
+    dim3 threads,
+    cudaStream_t cudaStream,
+    const float* data,
+    float* baseResult,
+    uint32_t step,
+    const int ROWS,
+    const int COLS,
+    const int gridX,
+    const int gridY,
+    float* buffer,
+    float* buffer1,
+    float* buffer2)
+{
+    kernel_get_base_from_grid<<<grid, threads, 0, cudaStream>>>(
+        data,
+        baseResult,
+        step,
+        ROWS,
+        COLS,
+        gridX,
+        gridY,
+        buffer,
+        buffer1,
+        buffer2);
 }
 
 __global__

@@ -802,7 +802,7 @@ static void TestCudaGetNanMask() {
 
 static void TestChooseMinValueForMask() {
     std::cout << std::endl << "----------------------------------------------------------";
-    std::cout << std::endl << "CUDA CHOOST MIN VALUE INTERVAL TEST #1 STARTING";
+    std::cout << std::endl << "CUDA CHOOSE MIN VALUE INTERVAL TEST #1 STARTING";
     std::cout << std::endl << "----------------------------------------------------------";
     std::cout << std::endl;
     const int ROWS = 2048;
@@ -881,8 +881,75 @@ static void TestMergeHeightIntersect() {
     //matGpuH4.download(matCpuH4);
 }
 
+static void TestGetBaseFromGrid_1() {
+    std::cout << std::endl << "----------------------------------------------------------";
+    std::cout << std::endl << "CUDA GET BASE FROM GRID INTERNAL TEST #1 STARTING";
+    std::cout << std::endl << "----------------------------------------------------------";
+    std::cout << std::endl;
+
+    const int ROWS = 2048, COLS = 2040;
+
+    cv::Mat matInput = cv::Mat::ones(ROWS, COLS, CV_32FC1);
+    for (int i = 0; i < 200000; ++ i) {
+        int row = std::rand () % ROWS;
+        int col = std::rand () % COLS;
+        matInput.at<float>(row, col) = float(std::rand () % 500) / 100.f - 2.5f;
+    }
+
+    cv::cuda::GpuMat matInputGpu, matBaseGpu(ROWS, COLS, CV_32FC1);
+    matInputGpu.upload(matInput);
+    float *buffer, *buffer1, *buffer2;
+    cudaError_t err = cudaMalloc(reinterpret_cast<void **>(&buffer), ROWS * COLS * 4 * sizeof(float));
+    err = cudaMalloc(reinterpret_cast<void **>(&buffer1), ROWS * COLS / 2 * sizeof(float));
+    err = cudaMalloc(reinterpret_cast<void **>(&buffer2), ROWS * COLS / 2 * sizeof(float));
+    CudaAlgorithm::getBaseFromGrid(matInputGpu, matBaseGpu, 10, 10, buffer, buffer1, buffer2);
+    cv::Mat matBase;
+    matBaseGpu.download(matBase);
+    std::cout << std::fixed << std::setprecision(2);
+    for (int row = 0; row < ROWS; row += 200) {
+        for(int col = 0; col < COLS; col += 200) {
+            std::cout << matBase.at<float>(row, col) << " ";
+        }
+        std::cout << std::endl;
+    }
+}
+
+static void TestGetBaseFromGrid_2() {
+    std::cout << std::endl << "----------------------------------------------------------";
+    std::cout << std::endl << "CUDA GET BASE FROM GRID INTERNAL TEST #2 STARTING";
+    std::cout << std::endl << "----------------------------------------------------------";
+    std::cout << std::endl;
+
+    const int ROWS = 2048, COLS = 2040;
+
+    cv::Mat matInput = cv::Mat::ones(ROWS, COLS, CV_32FC1);
+    cv::Mat matROI(matInput, cv::Range(512, 1536), cv::Range(512, 1536));
+    matROI.setTo(2);
+    for (int i = 0; i < 200000; ++ i) {
+        int row = std::rand () % ROWS;
+        int col = std::rand () % COLS;
+        matInput.at<float>(row, col) = float(std::rand () % 500) / 100.f - 2.5f;
+    }
+
+    cv::cuda::GpuMat matInputGpu, matBaseGpu(ROWS, COLS, CV_32FC1);
+    matInputGpu.upload(matInput);
+    float *buffer, *buffer1, *buffer2;
+    cudaError_t err = cudaMalloc(reinterpret_cast<void **>(&buffer), ROWS * COLS * 4 * sizeof(float));
+    err = cudaMalloc(reinterpret_cast<void **>(&buffer1), ROWS * COLS / 2 * sizeof(float));
+    err = cudaMalloc(reinterpret_cast<void **>(&buffer2), ROWS * COLS / 2 * sizeof(float));
+    CudaAlgorithm::getBaseFromGrid(matInputGpu, matBaseGpu, 10, 10, buffer, buffer1, buffer2);
+    cv::Mat matBase;
+    matBaseGpu.download(matBase);
+    std::cout << std::fixed << std::setprecision(2);
+    for (int row = 0; row < ROWS; row += 200) {
+        for(int col = 0; col < COLS; col += 200) {
+            std::cout << matBase.at<float>(row, col) << " ";
+        }
+        std::cout << std::endl;
+    }
+}
+
 void InternalTest() {
-    TestMergeHeightIntersect();
     TestBilinearInterpolation();
     TestCalcUtilsCumSum();
     TestCalcUtilsIntervals();
@@ -906,6 +973,8 @@ void InternalTest() {
     TestCudaPhasePatch();
     TestCudaGetNanMask();
     TestChooseMinValueForMask();
+    TestGetBaseFromGrid_1();
+    TestGetBaseFromGrid_2();
 }
 
 }

@@ -1782,8 +1782,8 @@ void TestCalc4DLPHeight_SimulateMachine()
             stCalc3DlpHeightCmd.arrCalcHeightCmd[dlp].vecInputImgs = VectorOfMat(vecImages.begin() + dlp * IMAGE_COUNT, vecImages.begin() + (dlp + 1) * IMAGE_COUNT);
         }
 
-        stCalc3DlpHeightCmd.fHeightDiffThreshold1 = 0.1f;
-        stCalc3DlpHeightCmd.fHeightDiffThreshold2 = 0.1f;
+        stCalc3DlpHeightCmd.fHeightDiffThreshold1 = 0.2f;
+        stCalc3DlpHeightCmd.fHeightDiffThreshold2 = 0.2f;
 
         PR_CalcMerge4DlpHeight(&stCalc3DlpHeightCmd, &stCalc3DlpHeightRpy);
         if (stCalc3DlpHeightRpy.enStatus != VisionStatus::OK)
