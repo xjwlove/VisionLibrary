@@ -898,11 +898,13 @@ static void TestGetBaseFromGrid_1() {
 
     cv::cuda::GpuMat matInputGpu, matBaseGpu(ROWS, COLS, CV_32FC1);
     matInputGpu.upload(matInput);
-    float *buffer, *buffer1, *buffer2;
+    float *buffer, *buffer1, *buffer2, *baseValues;
+    const int gridX = 10, gridY = 10;
     cudaError_t err = cudaMalloc(reinterpret_cast<void **>(&buffer), ROWS * COLS * 4 * sizeof(float));
     err = cudaMalloc(reinterpret_cast<void **>(&buffer1), ROWS * COLS / 2 * sizeof(float));
     err = cudaMalloc(reinterpret_cast<void **>(&buffer2), ROWS * COLS / 2 * sizeof(float));
-    CudaAlgorithm::getBaseFromGrid(matInputGpu, matBaseGpu, 10, 10, buffer, buffer1, buffer2);
+    err = cudaMalloc(reinterpret_cast<void **>(&baseValues), gridX * gridY * sizeof(float));
+    CudaAlgorithm::getBaseFromGrid(matInputGpu, matBaseGpu, 10, 10, buffer, buffer1, buffer2, baseValues);
     cv::Mat matBase;
     matBaseGpu.download(matBase);
     std::cout << std::fixed << std::setprecision(2);
@@ -912,6 +914,10 @@ static void TestGetBaseFromGrid_1() {
         }
         std::cout << std::endl;
     }
+    cudaFree(buffer);
+    cudaFree(buffer1);
+    cudaFree(buffer2);
+    cudaFree(baseValues);
 }
 
 static void TestGetBaseFromGrid_2() {
@@ -933,11 +939,13 @@ static void TestGetBaseFromGrid_2() {
 
     cv::cuda::GpuMat matInputGpu, matBaseGpu(ROWS, COLS, CV_32FC1);
     matInputGpu.upload(matInput);
-    float *buffer, *buffer1, *buffer2;
+    float *buffer, *buffer1, *buffer2, *baseValues;
+    const int gridX = 10, gridY = 10;
     cudaError_t err = cudaMalloc(reinterpret_cast<void **>(&buffer), ROWS * COLS * 4 * sizeof(float));
     err = cudaMalloc(reinterpret_cast<void **>(&buffer1), ROWS * COLS / 2 * sizeof(float));
     err = cudaMalloc(reinterpret_cast<void **>(&buffer2), ROWS * COLS / 2 * sizeof(float));
-    CudaAlgorithm::getBaseFromGrid(matInputGpu, matBaseGpu, 10, 10, buffer, buffer1, buffer2);
+    err = cudaMalloc(reinterpret_cast<void **>(&baseValues), gridX * gridY * sizeof(float));
+    CudaAlgorithm::getBaseFromGrid(matInputGpu, matBaseGpu, 10, 10, buffer, buffer1, buffer2, baseValues);
     cv::Mat matBase;
     matBaseGpu.download(matBase);
     std::cout << std::fixed << std::setprecision(2);
@@ -947,6 +955,10 @@ static void TestGetBaseFromGrid_2() {
         }
         std::cout << std::endl;
     }
+    cudaFree(buffer);
+    cudaFree(buffer1);
+    cudaFree(buffer2);
+    cudaFree(baseValues);
 }
 
 void InternalTest() {

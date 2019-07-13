@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <algorithm>
 
 #include <cuda_runtime_api.h>
 #include <cuda.h>
@@ -856,7 +857,7 @@ void kernel_get_base_from_grid(
     int marginX = ceil(COLS / gridX * 0.15f);
     int marginY = ceil(ROWS / gridY * 0.15f);
 
-    const int PICK_POINT_INTERVAL = 2;
+    const int PICK_POINT_INTERVAL = 4;
     int bufferStep = (gridSizeX + 2 * marginX) * (gridSizeY + 2 * marginY) / PICK_POINT_INTERVAL / PICK_POINT_INTERVAL;
     bufferStep = ceil(float(bufferStep) / 1024 * 1024); // Round to can divide by 1024 to make memory can be aligned with pitch
 
@@ -944,6 +945,8 @@ void kernel_get_base_from_grid(
             *(baseResult + y * step + x) = meanValue;
         }
     }
+
+    //*(baseValues + GRID_INDEX) = meanValue;
 }
 
 void run_kernel_get_base_from_grid(
@@ -959,7 +962,8 @@ void run_kernel_get_base_from_grid(
     const int gridY,
     float* buffer,
     float* buffer1,
-    float* buffer2)
+    float* buffer2,
+    float* baseValues)
 {
     kernel_get_base_from_grid<<<grid, threads, 0, cudaStream>>>(
         data,
@@ -972,6 +976,50 @@ void run_kernel_get_base_from_grid(
         buffer,
         buffer1,
         buffer2);
+}
+
+__global__
+void kernel_set_base_value_to_matrix(
+    float*       baseResult,
+    uint32_t     step,
+    const int    ROWS,
+    const int    COLS,
+    const int    gridX,
+    const int    gridY,
+    const float* baseValues)
+{
+    int col = blockIdx.x * blockDim.x + threadIdx.x;
+    int row = blockIdx.y * blockDim.y + threadIdx.y;
+    if (col >= COLS || row >= ROWS)
+        return;
+
+    float gridSizeX = float(COLS - 1) / gridX;
+    float gridSizeY = float(ROWS - 1) / gridY;
+
+    const int GRID_INDEX = static_cast<int>(row / gridSizeY) * gridX + static_cast<int>(col / gridSizeX);
+    *(baseResult + row * step + col) = *(baseValues + GRID_INDEX);
+}
+
+void run_kernel_set_base_value_to_matrix(
+    dim3 grid,
+    dim3 threads,
+    cudaStream_t cudaStream,
+    float* baseResult,
+    uint32_t step,
+    const int ROWS,
+    const int COLS,
+    const int gridX,
+    const int gridY,
+    const float *baseValues)
+{
+    kernel_set_base_value_to_matrix<<<grid, threads, 0, cudaStream>>>(
+        baseResult,
+        step,
+        ROWS,
+        COLS,
+        gridX,
+        gridY,
+        baseValues);
 }
 
 __global__

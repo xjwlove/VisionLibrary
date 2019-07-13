@@ -1762,9 +1762,8 @@ void TestCalc4DLPHeight_SimulateMachine()
             stCalc3DlpHeightCmd.arrCalcHeightCmd[dlp].bUseThinnestPattern = b3DDetectCaliUseThinPattern;
             stCalc3DlpHeightCmd.arrCalcHeightCmd[dlp].fMinAmplitude = 3.f;
             stCalc3DlpHeightCmd.arrCalcHeightCmd[dlp].fPhaseShift = phaseShift;
-            stCalc3DlpHeightCmd.arrCalcHeightCmd[dlp].fBaseRangeMin = 0.03f;
-            stCalc3DlpHeightCmd.arrCalcHeightCmd[dlp].fBaseRangeMax = 0.1f;
             stCalc3DlpHeightCmd.arrCalcHeightCmd[dlp].nDlpNo = dlp;
+            stCalc3DlpHeightCmd.arrCalcHeightCmd[dlp].nCompareRemoveJumpSpan = 25;
 
             const auto& dlpBaseCalibResult = m_arrDlpBaseCalibResult[dlp];
             stCalc3DlpHeightCmd.arrCalcHeightCmd[dlp].matThickToThinK = dlpBaseCalibResult.matThickToThinK;
@@ -1782,8 +1781,8 @@ void TestCalc4DLPHeight_SimulateMachine()
             stCalc3DlpHeightCmd.arrCalcHeightCmd[dlp].vecInputImgs = VectorOfMat(vecImages.begin() + dlp * IMAGE_COUNT, vecImages.begin() + (dlp + 1) * IMAGE_COUNT);
         }
 
-        stCalc3DlpHeightCmd.fHeightDiffThreshold1 = 0.2f;
-        stCalc3DlpHeightCmd.fHeightDiffThreshold2 = 0.2f;
+        stCalc3DlpHeightCmd.fHeightDiffThreshold1 = 0.1f;
+        stCalc3DlpHeightCmd.fHeightDiffThreshold2 = 0.1f;
 
         PR_CalcMerge4DlpHeight(&stCalc3DlpHeightCmd, &stCalc3DlpHeightRpy);
         if (stCalc3DlpHeightRpy.enStatus != VisionStatus::OK)
@@ -1803,6 +1802,7 @@ void TestCalc4DLPHeight_SimulateMachine()
             cv::imwrite(strResultFolder + "Final_HeightGray.png", stRpy.matGray);
             cv::imwrite(strResultFolder + "Final_HeightGray_Grid.png", _drawHeightGrid(stCalc3DlpHeightRpy.matHeight, 10, 10));
             std::cout << "Success to calculate 4 DLP height" << std::endl;
+            std::cout << "Result written to folder: " << strResultFolder << std::endl;
         }
         else {
             std::cout << "Failed to convert height to gray scale" << std::endl;
@@ -1922,10 +1922,8 @@ void TestSimulateDlpHeightOffsetCalib()
                 stCalc3DGpuCmd.bUseThinnestPattern = b3DDetectCaliUseThinPattern;
                 stCalc3DGpuCmd.fPhaseShift = d3DDetectPhaseShift;
                 stCalc3DGpuCmd.fHeightOffset = 0.f;
-                //stCalc3DGpuCmd.nRemoveJumpSpan = 0;
-                //stCalc3DGpuCmd.nCompareRemoveJumpSpan = 0;
-                stCalc3DGpuCmd.fBaseRangeMin = 0.03f;
-                stCalc3DGpuCmd.fBaseRangeMin = 0.1f;
+                stCalc3DGpuCmd.nRemoveJumpSpan = 7;
+                stCalc3DGpuCmd.nCompareRemoveJumpSpan = 25;
 
                 const auto& dlpBaseCalibResult = m_arrDlpBaseCalibResult[dlp];
                 stCalc3DGpuCmd.matThickToThinK = dlpBaseCalibResult.matThickToThinK;

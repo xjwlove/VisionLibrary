@@ -17,8 +17,7 @@ struct Calc3DHeightVars {
     cv::cuda::GpuMat matBeta1;
     cv::cuda::GpuMat matGamma;
     cv::cuda::GpuMat matGamma1;
-    cv::cuda::GpuMat matBetaBase;
-    cv::cuda::GpuMat matAvgUnderTolIndex;
+    cv::cuda::GpuMat matAvgUnderTolGpu;
     cv::cuda::GpuMat matBufferGpu;
     cv::cuda::GpuMat matBufferGpuT;
     cv::cuda::GpuMat matBufferGpuT_1;
@@ -98,7 +97,7 @@ public:
     static float intervalRangeAverage(const cv::cuda::GpuMat& matInput, int interval, float rangeStart, float rangeEnd, float* d_result,
         cudaEvent_t& eventDone, cv::cuda::Stream& stream = cv::cuda::Stream::Null());
     static void getBaseFromGrid(const cv::cuda::GpuMat& matInput, cv::cuda::GpuMat& matBaseResult, int gridX, int GridY,
-        float* buffer, float* buffer1, float* buffer2,
+        float* buffer, float* buffer1, float* buffer2, float* baseValues,
         cv::cuda::Stream& stream = cv::cuda::Stream::Null());
     static void phaseWrapBuffer(cv::cuda::GpuMat& matPhase, cv::cuda::GpuMat& matBuffer, float* d_tmpVar, float fShift,
         cudaEvent_t& eventDone,

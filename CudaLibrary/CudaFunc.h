@@ -111,7 +111,20 @@ void run_kernel_get_base_from_grid(
     const int gridY,
     float* buffer,
     float* buffer1,
-    float* buffer2);
+    float* buffer2,
+    float* baseValues);
+
+void run_kernel_set_base_value_to_matrix(
+    dim3 grid,
+    dim3 threads,
+    cudaStream_t cudaStream,
+    float* baseResult,
+    uint32_t step,
+    const int ROWS,
+    const int COLS,
+    const int gridX,
+    const int gridY,
+    const float *baseValues);
 
 void run_kernel_phase_to_height_3d(
     dim3 grid,

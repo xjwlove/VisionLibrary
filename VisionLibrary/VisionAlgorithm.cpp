@@ -7237,14 +7237,6 @@ VisionStatus VisionAlgorithm::_findLineByCaliper(const cv::Mat &matInputImg, con
             return pstRpy->enStatus;
         }
 
-        if (stCmd.fBaseRangeMin < 0.f || stCmd.fBaseRangeMax > 1.f || stCmd.fBaseRangeMin > stCmd.fBaseRangeMax) {
-            std::stringstream ss;
-            ss << "The fBaseRangeMin " << stCmd.fBaseRangeMin << " and fBaseRangeMax " << stCmd.fBaseRangeMax << " is invalid";
-            WriteLog(ss.str());
-            pstRpy->enStatus = VisionStatus::INVALID_PARAM;
-            return pstRpy->enStatus;
-        }
-
         if (fabs(stCmd.fHeightOffset) > 0.5f) {
             std::stringstream ss;
             ss << "The dlp height offset " << stCmd.fHeightOffset << " is invalid";
