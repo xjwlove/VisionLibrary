@@ -92,6 +92,20 @@ public:
         cv::cuda::GpuMat& matMask,
         float fMinimumAlpitudeSquare,
         cv::cuda::Stream& stream = cv::cuda::Stream::Null());
+    static void calcPhase(
+        const cv::cuda::GpuMat& matInput0,
+        const cv::cuda::GpuMat& matInput1,
+        const cv::cuda::GpuMat& matInput2,
+        cv::cuda::GpuMat& matPhase,
+        cv::cuda::Stream& stream = cv::cuda::Stream::Null());
+    static void calcPhaseAndMask(
+        const cv::cuda::GpuMat& matInput0,
+        const cv::cuda::GpuMat& matInput1,
+        const cv::cuda::GpuMat& matInput2,
+        cv::cuda::GpuMat& matPhase,
+        cv::cuda::GpuMat& matMask,
+        float fMinimumAlpitudeSquare,
+        cv::cuda::Stream& stream = cv::cuda::Stream::Null());
     static float intervalAverage(const cv::cuda::GpuMat& matInput, int interval, float *d_result, cudaEvent_t& eventDone,
         cv::cuda::Stream& stream = cv::cuda::Stream::Null());
     static float intervalRangeAverage(const cv::cuda::GpuMat& matInput, int interval, float rangeStart, float rangeEnd, float* d_result,

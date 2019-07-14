@@ -7117,8 +7117,8 @@ VisionStatus VisionAlgorithm::_findLineByCaliper(const cv::Mat &matInputImg, con
             return pstRpy->enStatus;
         }
 
-        if (pstCmd->vecInputImgs.size() != 3 * PR_GROUP_TEXTURE_IMG_COUNT) {
-            WriteLog("Please input 12 images if using the thinnest pattern.");
+        if (pstCmd->vecInputImgs.size() != 3 * PR_GROUP_TEXTURE_IMG_COUNT && pstCmd->vecInputImgs.size() != 10) {
+            WriteLog("Please input 10 or 12 images if using the thinnest pattern.");
             pstRpy->enStatus = VisionStatus::INVALID_PARAM;
             return pstRpy->enStatus;
         }
@@ -7222,8 +7222,8 @@ VisionStatus VisionAlgorithm::_findLineByCaliper(const cv::Mat &matInputImg, con
                 return pstRpy->enStatus;
             }
 
-            if (stCmd.vecInputImgs.size() != 3 * PR_GROUP_TEXTURE_IMG_COUNT) {
-                WriteLog("Please input 12 images if using the thinnest pattern.");
+            if (stCmd.vecInputImgs.size() != 3 * PR_GROUP_TEXTURE_IMG_COUNT && stCmd.vecInputImgs.size() != 10) {
+                WriteLog("Please input 10 or 12 images if using the thinnest pattern.");
                 pstRpy->enStatus = VisionStatus::INVALID_PARAM;
                 return pstRpy->enStatus;
             }

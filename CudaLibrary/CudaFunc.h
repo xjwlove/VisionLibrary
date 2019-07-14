@@ -34,6 +34,32 @@ void run_kernel_calc_phase_and_dark_mask(
     const int COLS,
     const int step);
 
+void run_kernel_calc_phase_3_images(
+    dim3 grid,
+    dim3 threads,
+    cudaStream_t cudaStream,
+    const unsigned char* pInput0,
+    const unsigned char* pInput1,
+    const unsigned char* pInput2,
+    float* pResult,
+    const int ROWS,
+    const int COLS,
+    const int step);
+
+void run_kernel_calc_phase_and_dark_mask_3_images(
+    dim3 grid,
+    dim3 threads,
+    cudaStream_t cudaStream,
+    const unsigned char* pInput0,
+    const unsigned char* pInput1,
+    const unsigned char* pInput2,
+    float* pResult,
+    unsigned char* pMask,
+    float fMinimumAlpitudeSquare,
+    const int ROWS,
+    const int COLS,
+    const int step);
+
 void run_kernel_select_cmp_point(
     uint32_t gridSize,
     uint32_t blockSize,

@@ -13,6 +13,7 @@
 
 __constant__ float ONE_HALF_CYCLE = 1.f;
 __constant__ float ONE_CYCLE = 2.f;
+__constant__ float SQRT_OF_3 = 1.73205f;
 
 __global__
 void kernel_calc_phase(
@@ -90,6 +91,81 @@ void run_kernel_calc_phase_and_dark_mask(
     const int COLS,
     const int step) {
     kernel_calc_phase_and_dark_mask<<<grid, threads, 0, cudaStream>>>(pInput0, pInput1, pInput2, pInput3,
+        pResult, pMask, fMinimumAlpitudeSquare, ROWS, COLS, step);
+}
+
+__global__
+void kernel_calc_phase_3_images(
+    const unsigned char* pInput0,
+    const unsigned char* pInput1,
+    const unsigned char* pInput2,
+    float* pResult,
+    const int ROWS,
+    const int COLS,
+    const int step) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    int j = blockIdx.y * blockDim.y + threadIdx.y;
+    if (i < COLS && j < ROWS) {
+        int index = j * step + i;
+        float x = (float)pInput0[index] / 3.f * 2.f - (float)pInput1[index] / 3.f - (float)pInput2[index] / 3.f;  // x = cos(beta)
+        float y = (float)pInput1[index] / 3.f * SQRT_OF_3 - (float)pInput2[index] / 3.f * SQRT_OF_3;              // y = -sin(beta)
+        pResult[index] = atan2(-y, x) / PI;
+    }
+}
+
+void run_kernel_calc_phase_3_images(
+    dim3 grid,
+    dim3 threads,
+    cudaStream_t cudaStream,
+    const unsigned char* pInput0,
+    const unsigned char* pInput1,
+    const unsigned char* pInput2,
+    float* pResult,
+    const int ROWS,
+    const int COLS,
+    const int step) {
+    kernel_calc_phase_3_images<<<grid, threads, 0, cudaStream>>>(pInput0, pInput1, pInput2, pResult, ROWS, COLS, step);
+}
+
+__global__
+void kernel_calc_phase_and_dark_mask_3_images(
+    const unsigned char* pInput0,
+    const unsigned char* pInput1,
+    const unsigned char* pInput2,
+    float* pResult,
+    unsigned char* pMask,
+    float fMinimumAlpitudeSquare,
+    const int ROWS,
+    const int COLS,
+    const int step) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    int j = blockIdx.y * blockDim.y + threadIdx.y;
+    if (i < COLS && j < ROWS) {
+        int index = j * step + i;
+        float x = (float)pInput0[index] / 3.f * 2.f - (float)pInput1[index] / 3.f - (float)pInput2[index] / 3.f;  // x = cos(beta)
+        float y = (float)pInput1[index] / 3.f * SQRT_OF_3 - (float)pInput2[index] / 3.f * SQRT_OF_3;              // y = -sin(beta)
+        pResult[index] = atan2(-y, x) / PI;
+
+        float fAmplitudeSquare = x * x + y * y;
+        if (fAmplitudeSquare < fMinimumAlpitudeSquare)
+            pMask[index] = 255;
+    }
+}
+
+void run_kernel_calc_phase_and_dark_mask_3_images(
+    dim3 grid,
+    dim3 threads,
+    cudaStream_t cudaStream,
+    const unsigned char* pInput0,
+    const unsigned char* pInput1,
+    const unsigned char* pInput2,
+    float* pResult,
+    unsigned char* pMask,
+    float fMinimumAlpitudeSquare,
+    const int ROWS,
+    const int COLS,
+    const int step) {
+    kernel_calc_phase_and_dark_mask_3_images<<<grid, threads, 0, cudaStream>>>(pInput0, pInput1, pInput2,
         pResult, pMask, fMinimumAlpitudeSquare, ROWS, COLS, step);
 }
 

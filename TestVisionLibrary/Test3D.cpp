@@ -1871,6 +1871,156 @@ void TestCalc4DLPHeight_SimulateMachine()
     PR_ClearDlpParams();
 }
 
+void TestCalc4DLPHeight_10_Images_SimulateMachine()
+{
+    _loadDlpCalibResult();
+
+    PR_SET_DLP_PARAMS_TO_GPU_CMD stSetDlpParamsCmd;
+    PR_SET_DLP_PARAMS_TO_GPU_RPY stSetDlpParamsRpy;
+    for (int dlp = 0; dlp < NUM_OF_DLP; ++dlp) {
+        stSetDlpParamsCmd.vecMatAlphaBase[dlp] = m_arrDlpBaseCalibResult[dlp].matBaseWrappedAlpha;
+        stSetDlpParamsCmd.vecMatBetaBase[dlp] = m_arrDlpBaseCalibResult[dlp].matBaseWrappedBeta;
+        stSetDlpParamsCmd.vecMatGammaBase[dlp] = m_arrDlpBaseCalibResult[dlp].matBaseWrappedGamma;
+        stSetDlpParamsCmd.vec3DBezierSurface[dlp] = m_arrDlpHeightCalibResult[dlp].mat3DBezierSurface;
+    }
+
+    PR_SetDlpParamsToGpu(&stSetDlpParamsCmd, &stSetDlpParamsRpy);
+
+    if (stSetDlpParamsRpy.enStatus != VisionStatus::OK) {
+        std::cout << "PR_SetDlpParamsToGpu failed" << std::endl;
+        return;
+    }
+
+    std::cout << "PR_SetDlpParamsToGpu success" << std::endl;
+
+    std::string strParentFolder = "C:/Downloads/3D_20190707/TestingImageFor10Image/Image/PCB_FOV/";
+    {
+        std::string strImageFolder = strParentFolder + "0408211237/";
+        std::string strResultFolder = strParentFolder + "Frame_1_Result/";
+
+        auto vecImages = ReadFrameImage(strImageFolder);
+        if (vecImages.empty())
+            return;
+
+        bool b3DDetectGaussionFilter = true;
+        bool b3DDetectCaliUseThinPattern = true;
+        float phaseShift = 0.1f;
+        PR_CALC_MERGE_4_DLP_HEIGHT_CMD stCalc3DlpHeightCmd;
+        PR_CALC_MERGE_4_DLP_HEIGHT_RPY stCalc3DlpHeightRpy;
+        for (int dlp = 0; dlp < NUM_OF_DLP; ++dlp) {
+            stCalc3DlpHeightCmd.arrCalcHeightCmd[dlp].bEnableGaussianFilter = b3DDetectGaussionFilter;
+            stCalc3DlpHeightCmd.arrCalcHeightCmd[dlp].bUseThinnestPattern = b3DDetectCaliUseThinPattern;
+            stCalc3DlpHeightCmd.arrCalcHeightCmd[dlp].fMinAmplitude = 3.f;
+            stCalc3DlpHeightCmd.arrCalcHeightCmd[dlp].fPhaseShift = phaseShift;
+            stCalc3DlpHeightCmd.arrCalcHeightCmd[dlp].nDlpNo = dlp;
+            stCalc3DlpHeightCmd.arrCalcHeightCmd[dlp].nCompareRemoveJumpSpan = 25;
+
+            const auto& dlpBaseCalibResult = m_arrDlpBaseCalibResult[dlp];
+            stCalc3DlpHeightCmd.arrCalcHeightCmd[dlp].matThickToThinK = dlpBaseCalibResult.matThickToThinK;
+            stCalc3DlpHeightCmd.arrCalcHeightCmd[dlp].matThickToThinnestK = dlpBaseCalibResult.matThickToThinnestK;
+            stCalc3DlpHeightCmd.arrCalcHeightCmd[dlp].enProjectDir = static_cast<PR_DIRECTION>(dlpBaseCalibResult.nProjectDir);
+            std::cout << "Dlp " << dlp << ", project direction " << dlpBaseCalibResult.nProjectDir << std::endl;
+            stCalc3DlpHeightCmd.arrCalcHeightCmd[dlp].enScanDir = static_cast<PR_DIRECTION>(dlpBaseCalibResult.nScanDir);
+            stCalc3DlpHeightCmd.arrCalcHeightCmd[dlp].bReverseSeq = dlpBaseCalibResult.bReverseSeq;
+
+            const auto& dlpHeightCalibResult = m_arrDlpHeightCalibResult[dlp];
+            stCalc3DlpHeightCmd.arrCalcHeightCmd[dlp].mat3DBezierK = dlpHeightCalibResult.mat3DBezierK;
+            stCalc3DlpHeightCmd.arrCalcHeightCmd[dlp].fMaxPhase = dlpHeightCalibResult.fMaxPhase;
+            stCalc3DlpHeightCmd.arrCalcHeightCmd[dlp].fMinPhase = dlpHeightCalibResult.fMinPhase;
+
+            stCalc3DlpHeightCmd.arrCalcHeightCmd[dlp].vecInputImgs = VectorOfMat(vecImages.begin() + dlp * IMAGE_COUNT, vecImages.begin() + (dlp + 1) * IMAGE_COUNT - 2);
+        }
+
+        stCalc3DlpHeightCmd.fHeightDiffThreshold1 = 0.1f;
+        stCalc3DlpHeightCmd.fHeightDiffThreshold2 = 0.1f;
+
+        PR_CalcMerge4DlpHeight(&stCalc3DlpHeightCmd, &stCalc3DlpHeightRpy);
+        if (stCalc3DlpHeightRpy.enStatus != VisionStatus::OK)
+        {
+            std::cout << "PR_CalcMerge4DlpHeight failed, status " << ToInt32(stCalc3DlpHeightRpy.enStatus) << " at line " << __LINE__ << std::endl;
+            return;
+        }
+        std::cout << "PR_CalcMerge4DlpHeight success" << std::endl;
+
+        saveMatToCsv(stCalc3DlpHeightRpy.matHeight, strResultFolder + "Final_Height.csv");
+
+        PR_HEIGHT_TO_GRAY_CMD stCmd;
+        PR_HEIGHT_TO_GRAY_RPY stRpy;
+        stCmd.matHeight = stCalc3DlpHeightRpy.matHeight;
+        PR_HeightToGray(&stCmd, &stRpy);
+        if (VisionStatus::OK == stRpy.enStatus) {
+            cv::imwrite(strResultFolder + "Final_HeightGray.png", stRpy.matGray);
+            cv::imwrite(strResultFolder + "Final_HeightGray_Grid.png", _drawHeightGrid(stCalc3DlpHeightRpy.matHeight, 10, 10));
+            std::cout << "Success to calculate 4 DLP height" << std::endl;
+            std::cout << "Result written to folder: " << strResultFolder << std::endl;
+        }
+        else {
+            std::cout << "Failed to convert height to gray scale" << std::endl;
+        }
+    }
+
+    //{
+    //    std::string strImageFolder = strParentFolder + "1/";
+    //    std::string strResultFolder = strParentFolder + "Frame_1_Result/";
+
+    //    auto vecImages = ReadFrameImage(strImageFolder);
+    //    if (vecImages.empty())
+    //        return;
+
+    //    bool b3DDetectGaussionFilter = true;
+    //    bool b3DDetectCaliUseThinPattern = true;
+    //    float phaseShift = 0.f;
+    //    PR_CALC_MERGE_4_DLP_HEIGHT_CMD stCalc3DlpHeightCmd;
+    //    PR_CALC_MERGE_4_DLP_HEIGHT_RPY stCalc3DlpHeightRpy;
+    //    for (int dlp = 0; dlp < NUM_OF_DLP; ++dlp) {
+    //        stCalc3DlpHeightCmd.arrCalcHeightCmd[dlp].bEnableGaussianFilter = b3DDetectGaussionFilter;
+    //        stCalc3DlpHeightCmd.arrCalcHeightCmd[dlp].bUseThinnestPattern = b3DDetectCaliUseThinPattern;
+    //        stCalc3DlpHeightCmd.arrCalcHeightCmd[dlp].fMinAmplitude = 3.f;
+    //        stCalc3DlpHeightCmd.arrCalcHeightCmd[dlp].fPhaseShift = phaseShift;
+    //        stCalc3DlpHeightCmd.arrCalcHeightCmd[dlp].fBaseRangeMin = 0.03f;
+    //        stCalc3DlpHeightCmd.arrCalcHeightCmd[dlp].fBaseRangeMax = 1.f;
+    //        stCalc3DlpHeightCmd.arrCalcHeightCmd[dlp].nDlpNo = dlp;
+
+    //        const auto& dlpBaseCalibResult = m_arrDlpBaseCalibResult[dlp];
+    //        stCalc3DlpHeightCmd.arrCalcHeightCmd[dlp].matThickToThinK = dlpBaseCalibResult.matThickToThinK;
+    //        stCalc3DlpHeightCmd.arrCalcHeightCmd[dlp].matThickToThinnestK = dlpBaseCalibResult.matThickToThinnestK;
+    //        stCalc3DlpHeightCmd.arrCalcHeightCmd[dlp].enProjectDir = static_cast<PR_DIRECTION>(dlpBaseCalibResult.nProjectDir);
+    //        stCalc3DlpHeightCmd.arrCalcHeightCmd[dlp].enScanDir = static_cast<PR_DIRECTION>(dlpBaseCalibResult.nScanDir);
+    //        stCalc3DlpHeightCmd.arrCalcHeightCmd[dlp].bReverseSeq = dlpBaseCalibResult.bReverseSeq;
+
+    //        const auto& dlpHeightCalibResult = m_arrDlpHeightCalibResult[dlp];
+    //        stCalc3DlpHeightCmd.arrCalcHeightCmd[dlp].mat3DBezierK = dlpHeightCalibResult.mat3DBezierK;
+    //        stCalc3DlpHeightCmd.arrCalcHeightCmd[dlp].fMaxPhase = dlpHeightCalibResult.fMaxPhase;
+    //        stCalc3DlpHeightCmd.arrCalcHeightCmd[dlp].fMinPhase = dlpHeightCalibResult.fMinPhase;
+
+    //        stCalc3DlpHeightCmd.arrCalcHeightCmd[dlp].vecInputImgs = VectorOfMat(vecImages.begin() + dlp * IMAGE_COUNT, vecImages.begin() + (dlp + 1) * IMAGE_COUNT);
+    //    }
+
+    //    stCalc3DlpHeightCmd.fHeightDiffThreshold = 0.1f;
+
+    //    PR_CalcMerge4DlpHeight(&stCalc3DlpHeightCmd, &stCalc3DlpHeightRpy);
+    //    if (stCalc3DlpHeightRpy.enStatus != VisionStatus::OK)
+    //    {
+    //        std::cout << "PR_CalcMerge4DlpHeight failed, status " << ToInt32(stCalc3DlpHeightRpy.enStatus) << " at line " << __LINE__ << std::endl;
+    //        return;
+    //    }
+    //    std::cout << "PR_CalcMerge4DlpHeight success" << std::endl;
+
+    //    saveMatToCsv(stCalc3DlpHeightRpy.matHeight, strResultFolder + "Final_Height.csv");
+
+    //    PR_HEIGHT_TO_GRAY_CMD stCmd;
+    //    PR_HEIGHT_TO_GRAY_RPY stRpy;
+    //    stCmd.matHeight = stCalc3DlpHeightRpy.matHeight;
+    //    PR_HeightToGray(&stCmd, &stRpy);
+    //    cv::imwrite(strResultFolder + "Final_HeightGray.png", stRpy.matGray);
+
+    //    cv::imwrite(strResultFolder + "Final_HeightGray_Grid.png", _drawHeightGrid(stCalc3DlpHeightRpy.matHeight, 10, 10));
+    //    std::cout << "Success to calculate 4 DLP height" << std::endl;
+    //}
+
+    PR_ClearDlpParams();
+}
+
 void TestSimulateDlpHeightOffsetCalib()
 {
     _loadDlpCalibResult();

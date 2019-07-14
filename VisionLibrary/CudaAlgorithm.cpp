@@ -300,11 +300,11 @@ static int divUp(int total, int grain)
 
 /*static*/ void CudaAlgorithm::calcPhase(
     const cv::cuda::GpuMat& matInput0,
-        const cv::cuda::GpuMat& matInput1,
-        const cv::cuda::GpuMat& matInput2,
-        const cv::cuda::GpuMat& matInput3,
-        cv::cuda::GpuMat& matPhase,
-        cv::cuda::Stream& stream /*= cv::cuda::Stream::Null()*/) {
+    const cv::cuda::GpuMat& matInput1,
+    const cv::cuda::GpuMat& matInput2,
+    const cv::cuda::GpuMat& matInput3,
+    cv::cuda::GpuMat& matPhase,
+    cv::cuda::Stream& stream /*= cv::cuda::Stream::Null()*/) {
     dim3 threads(16, 16);
     dim3 grid(divUp(matInput0.cols, threads.x), divUp(matInput0.rows, threads.y));
     run_kernel_calc_phase(grid, threads, cv::cuda::StreamAccessor::getStream(stream),
@@ -334,6 +334,46 @@ static int divUp(int total, int grain)
         matInput1.data,
         matInput2.data,
         matInput3.data,
+        reinterpret_cast<float *>(matPhase.data),
+        matMask.data,
+        fMinimumAlpitudeSquare,
+        matInput0.rows,
+        matInput0.cols,
+        ToInt32(matInput0.step1()));
+}
+
+/*static*/ void CudaAlgorithm::calcPhase(
+        const cv::cuda::GpuMat& matInput0,
+        const cv::cuda::GpuMat& matInput1,
+        const cv::cuda::GpuMat& matInput2,
+        cv::cuda::GpuMat& matPhase,
+        cv::cuda::Stream& stream/* = cv::cuda::Stream::Null()*/) {
+    dim3 threads(16, 16);
+    dim3 grid(divUp(matInput0.cols, threads.x), divUp(matInput0.rows, threads.y));
+    run_kernel_calc_phase_3_images(grid, threads, cv::cuda::StreamAccessor::getStream(stream),
+        matInput0.data,
+        matInput1.data,
+        matInput2.data,
+        reinterpret_cast<float *>(matPhase.data),
+        matInput0.rows,
+        matInput0.cols,
+        ToInt32(matInput0.step1()));
+}
+
+/*static*/ void CudaAlgorithm::calcPhaseAndMask(
+    const cv::cuda::GpuMat& matInput0,
+    const cv::cuda::GpuMat& matInput1,
+    const cv::cuda::GpuMat& matInput2,
+    cv::cuda::GpuMat& matPhase,
+    cv::cuda::GpuMat& matMask,
+    float fMinimumAlpitudeSquare,
+    cv::cuda::Stream& stream/* = cv::cuda::Stream::Null()*/) {
+    dim3 threads(16, 16);
+    dim3 grid(divUp(matInput0.cols, threads.x), divUp(matInput0.rows, threads.y));
+    run_kernel_calc_phase_and_dark_mask_3_images(grid, threads, cv::cuda::StreamAccessor::getStream(stream),
+        matInput0.data,
+        matInput1.data,
+        matInput2.data,
         reinterpret_cast<float *>(matPhase.data),
         matMask.data,
         fMinimumAlpitudeSquare,
