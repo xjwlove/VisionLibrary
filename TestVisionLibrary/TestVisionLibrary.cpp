@@ -801,8 +801,8 @@ int _tmain(int argc, _TCHAR* argv[])
 
     //TestCalc4DLPHeight();
     //TestCalc4DLPHeightOnePass();
-    //TestCalc4DLPHeight_SimulateMachine();
-    TestCalc4DLPHeight_10_Images_SimulateMachine();
+    TestCalc4DLPHeight_SimulateMachine();
+    //TestCalc4DLPHeight_10_Images_SimulateMachine();
     //TestSimulateDlpHeightOffsetCalib();
     //CompareHeightSame();
     //TestScanImage();

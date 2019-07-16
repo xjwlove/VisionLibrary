@@ -993,22 +993,24 @@ static inline cv::Mat calcOrder5BezierCoeff(const cv::Mat &matU) {
     matBase.copyTo(matBetaGpu, matAvgUnderTolGpu, stream);
     matBase.copyTo(matBetaGpu1, matAvgUnderTolGpu, stream);
 
-    CudaAlgorithm::phaseCorrectionCmp(matBetaGpu, matBetaGpu1,
-        matBufferGpu, matPhaseGpuT, calc3DHeightVar.matBufferGpuT_1,
-        calc3DHeightVar.matDiffResult, calc3DHeightVar.matDiffResultT,
-        calc3DHeightVar.matDiffResult_1, calc3DHeightVar.matDiffResultT_1,
-        calc3DHeightVar.matMaskGpu, calc3DHeightVar.matMaskGpuT, calc3DHeightVar.matMaskGpu_1,
-        calc3DHeightVar.pBufferJumpStart, calc3DHeightVar.pBufferJumpEnd, //Reuease the phase jump buffer
-        pstCmd->nCompareRemoveJumpSpan, stream);
+    if (pstCmd->nCompareRemoveJumpSpan > 0)
+        CudaAlgorithm::phaseCorrectionCmp(matBetaGpu, matBetaGpu1,
+            matBufferGpu, matPhaseGpuT, calc3DHeightVar.matBufferGpuT_1,
+            calc3DHeightVar.matDiffResult, calc3DHeightVar.matDiffResultT,
+            calc3DHeightVar.matDiffResult_1, calc3DHeightVar.matDiffResultT_1,
+            calc3DHeightVar.matMaskGpu, calc3DHeightVar.matMaskGpuT, calc3DHeightVar.matMaskGpu_1,
+            calc3DHeightVar.pBufferJumpStart, calc3DHeightVar.pBufferJumpEnd, //Reuease the phase jump buffer
+            pstCmd->nCompareRemoveJumpSpan, stream);
 
-    CudaAlgorithm::phaseCorrection(matBetaGpu, matPhaseGpuT,
-        calc3DHeightVar.matDiffResult, calc3DHeightVar.matDiffResultT,
-        calc3DHeightVar.matBufferSign, calc3DHeightVar.matBufferAmpl,
-        calc3DHeightVar.pBufferJumpSpan,
-        calc3DHeightVar.pBufferJumpStart,
-        calc3DHeightVar.pBufferJumpEnd,
-        calc3DHeightVar.pBufferSortedJumpSpanIdx,
-        pstCmd->nRemoveJumpSpan, pstCmd->nRemoveJumpSpan, stream);
+    if (pstCmd->nRemoveJumpSpan > 0)
+        CudaAlgorithm::phaseCorrection(matBetaGpu, matPhaseGpuT,
+            calc3DHeightVar.matDiffResult, calc3DHeightVar.matDiffResultT,
+            calc3DHeightVar.matBufferSign, calc3DHeightVar.matBufferAmpl,
+            calc3DHeightVar.pBufferJumpSpan,
+            calc3DHeightVar.pBufferJumpStart,
+            calc3DHeightVar.pBufferJumpEnd,
+            calc3DHeightVar.pBufferSortedJumpSpanIdx,
+            pstCmd->nRemoveJumpSpan, pstCmd->nRemoveJumpSpan, stream);
 
     if (pstCmd->bUseThinnestPattern) {
         auto k1 = pstCmd->matThickToThinK.at<DATA_TYPE>(0);
@@ -1031,17 +1033,18 @@ static inline cv::Mat calcOrder5BezierCoeff(const cv::Mat &matU) {
 
         //TimeLog::GetInstance()->addTimeLog("Parepare data for phaseCorrectionCmp for gamma.", stopWatch.Span());
 
-        CudaAlgorithm::phaseCorrectionCmp(matGammaGpu, matGammaGpu1,
-            matBufferGpu, matPhaseGpuT, calc3DHeightVar.matBufferGpuT_1,
-            calc3DHeightVar.matDiffResult, calc3DHeightVar.matDiffResultT,
-            calc3DHeightVar.matDiffResult_1, calc3DHeightVar.matDiffResultT_1,
-            calc3DHeightVar.matMaskGpu, calc3DHeightVar.matMaskGpuT, calc3DHeightVar.matMaskGpu_1,
-            calc3DHeightVar.pBufferJumpStart, calc3DHeightVar.pBufferJumpEnd, //Reuease the phase jump buffer
-            pstCmd->nCompareRemoveJumpSpan, stream);
+        if (pstCmd->nCompareRemoveJumpSpan > 0)
+            CudaAlgorithm::phaseCorrectionCmp(matGammaGpu, matGammaGpu1,
+                matBufferGpu, matPhaseGpuT, calc3DHeightVar.matBufferGpuT_1,
+                calc3DHeightVar.matDiffResult, calc3DHeightVar.matDiffResultT,
+                calc3DHeightVar.matDiffResult_1, calc3DHeightVar.matDiffResultT_1,
+                calc3DHeightVar.matMaskGpu, calc3DHeightVar.matMaskGpuT, calc3DHeightVar.matMaskGpu_1,
+                calc3DHeightVar.pBufferJumpStart, calc3DHeightVar.pBufferJumpEnd, //Reuease the phase jump buffer
+                pstCmd->nCompareRemoveJumpSpan, stream);
 
         //TimeLog::GetInstance()->addTimeLog("phaseCorrectionCmp for gamma.", stopWatch.Span());
 
-        if (pstCmd->nRemoveJumpSpan > 0) {
+        if (pstCmd->nRemoveJumpSpan > 0)
             CudaAlgorithm::phaseCorrection(matGammaGpu, matPhaseGpuT,
                 calc3DHeightVar.matDiffResult, calc3DHeightVar.matDiffResultT,
                 calc3DHeightVar.matBufferSign, calc3DHeightVar.matBufferAmpl,
@@ -1050,8 +1053,6 @@ static inline cv::Mat calcOrder5BezierCoeff(const cv::Mat &matU) {
                 calc3DHeightVar.pBufferJumpEnd,
                 calc3DHeightVar.pBufferSortedJumpSpanIdx,
                 pstCmd->nRemoveJumpSpan, pstCmd->nRemoveJumpSpan, stream);
-            //TimeLog::GetInstance()->addTimeLog("phaseCorrection for gamma.", stopWatch.Span());
-        }
 
         cv::cuda::multiply(matGammaGpu, k1 / k2, matBufferGpu, 1, -1, stream);
     }
@@ -1227,7 +1228,7 @@ static inline cv::Mat calcOrder5BezierCoeff(const cv::Mat &matU) {
     //idx1 = find((H22(idxovlp1) - H11(idxovlp1)) > Thresh); H22(idxovlp1(idx1)) = H11(idxovlp1(idx1));
     //idx2 = find((H11(idxovlp2) - H22(idxovlp2)) > Thresh); H11(idxovlp2(idx2)) = H22(idxovlp2(idx2));
     cv::cuda::subtract(matMerge2, matMerge1, calc3DHeightVar0.matBufferGpu, cv::cuda::GpuMat(), -1, stream1);
-    cv::cuda::compare(calc3DHeightVar0.matBufferGpu, 2 * fHeightDiffThreshold2, calc3DHeightVar0.matMaskGpu_2, cv::CmpTypes::CMP_GT, stream1);
+    cv::cuda::compare(calc3DHeightVar0.matBufferGpu, fHeightDiffThreshold2, calc3DHeightVar0.matMaskGpu_2, cv::CmpTypes::CMP_GT, stream1);
     //std::cout << "1 lower than 2 count " << cv::cuda::countNonZero(calc3DHeightVar0.matMaskGpu_2) << std::endl;
     cv::cuda::bitwise_and(calc3DHeightVar0.matMaskGpu_2, matOverlap1, calc3DHeightVar0.matMaskGpu_2, cv::cuda::GpuMat(), stream1);
     matMerge1.copyTo(matMerge2, calc3DHeightVar0.matMaskGpu_2, stream1);
@@ -1240,7 +1241,7 @@ static inline cv::Mat calcOrder5BezierCoeff(const cv::Mat &matU) {
     //}
 
     cv::cuda::subtract(matMerge1, matMerge2, calc3DHeightVar0.matBufferGpu, cv::cuda::GpuMat(), -1, stream1);
-    cv::cuda::compare(calc3DHeightVar0.matBufferGpu, 2 * fHeightDiffThreshold2, calc3DHeightVar0.matMaskGpu_2, cv::CmpTypes::CMP_GT, stream1);
+    cv::cuda::compare(calc3DHeightVar0.matBufferGpu, fHeightDiffThreshold2, calc3DHeightVar0.matMaskGpu_2, cv::CmpTypes::CMP_GT, stream1);
     //std::cout << "2 lower than 1 count " << cv::cuda::countNonZero(calc3DHeightVar0.matMaskGpu_2) << std::endl;
     cv::cuda::bitwise_and(calc3DHeightVar0.matMaskGpu_2, matOverlap2, calc3DHeightVar0.matMaskGpu_2, cv::cuda::GpuMat(), stream1);
     matMerge2.copyTo(matMerge1, calc3DHeightVar0.matMaskGpu_2, stream1);
