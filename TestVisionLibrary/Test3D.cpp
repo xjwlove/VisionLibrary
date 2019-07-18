@@ -1745,8 +1745,8 @@ void TestCalc4DLPHeight_SimulateMachine()
 
     std::string strParentFolder = "C:/Data/2019_07_15_Try_10_Dlp_Images/Dlp_12_Images_Scan_Result/Work_Flow_Images/";
     {
-        std::string strImageFolder = strParentFolder + "11/";
-        std::string strResultFolder = strParentFolder + "Frame_11_Result/";
+        std::string strImageFolder = strParentFolder + "10/";
+        std::string strResultFolder = strParentFolder + "Frame_10_Result/";
 
         auto vecImages = ReadFrameImage(strImageFolder);
         if (vecImages.empty())
@@ -1764,7 +1764,7 @@ void TestCalc4DLPHeight_SimulateMachine()
             stCalc3DlpHeightCmd.arrCalcHeightCmd[dlp].fPhaseShift = phaseShift;
             stCalc3DlpHeightCmd.arrCalcHeightCmd[dlp].nDlpNo = dlp;
             stCalc3DlpHeightCmd.arrCalcHeightCmd[dlp].nRemoveJumpSpan = 7;
-            stCalc3DlpHeightCmd.arrCalcHeightCmd[dlp].nCompareRemoveJumpSpan = 25;
+            stCalc3DlpHeightCmd.arrCalcHeightCmd[dlp].nCompareRemoveJumpSpan = 15;
 
             const auto& dlpBaseCalibResult = m_arrDlpBaseCalibResult[dlp];
             stCalc3DlpHeightCmd.arrCalcHeightCmd[dlp].matThickToThinK = dlpBaseCalibResult.matThickToThinK;
@@ -1782,8 +1782,8 @@ void TestCalc4DLPHeight_SimulateMachine()
             stCalc3DlpHeightCmd.arrCalcHeightCmd[dlp].vecInputImgs = VectorOfMat(vecImages.begin() + dlp * IMAGE_COUNT, vecImages.begin() + (dlp + 1) * IMAGE_COUNT);
         }
 
-        stCalc3DlpHeightCmd.fHeightDiffThreshold1 = 0.1f;
-        stCalc3DlpHeightCmd.fHeightDiffThreshold2 = 0.1f;
+        stCalc3DlpHeightCmd.fHeightDiffThreshold1 = 0.2f;
+        stCalc3DlpHeightCmd.fHeightDiffThreshold2 = 0.2f;
 
         PR_CalcMerge4DlpHeight(&stCalc3DlpHeightCmd, &stCalc3DlpHeightRpy);
         if (stCalc3DlpHeightRpy.enStatus != VisionStatus::OK)

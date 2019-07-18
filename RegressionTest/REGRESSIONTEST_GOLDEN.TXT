@@ -973,10 +973,10 @@ FIND LINE BY CALIPER ROTATED ROI REGRESSION TEST #1 STARTING
 Find line status 204
 Error Msg: Line angle difference is out of tolerance.
 ReversedFit = 1
-Line slope = -0.44, intercept = 138.50
-Line coordinate: (105.15, 75.04), (70.57, 152.86)
+Line slope = -0.44, intercept = 138.55
+Line coordinate: (104.75, 75.98), (70.56, 152.86)
 Linerity  = 1.00
-Angle  = 113.96
+Angle  = 113.98
 
 ------------------------------------------------------------
 FIND LINE BY CALIPER ROTATED ROI REGRESSION TEST #2 STARTING
