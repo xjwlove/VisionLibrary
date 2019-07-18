@@ -15,6 +15,11 @@ Point [20, 0] result 12
 Point [50, 0] result 15
 Point [70, 0] result 17
 
+----------------------------------------------
+CALC STD DEVIATION REGRESSION TEST #1 STARTING
+----------------------------------------------
+Std Deviation: 0
+
 ------------------------------------------
 CUMSUM REGRESSION TEST #1 STARTING
 ------------------------------------------
@@ -941,6 +946,26 @@ Line slope = 0.00, intercept = 1852.91
 Line coordinate: (967.00, 1856.41), (1136.00, 1857.02)
 Linerity  = 1.00
 Angle  = 0.21
+
+------------------------------------------------
+FIND LINE BY CALIPER REGRESSION TEST #5 STARTING
+------------------------------------------------
+Find line status 0
+ReversedFit = 0
+Line slope = 0.00, intercept = 16.00
+Line coordinate: (15.00, 16.00), (38.00, 16.00)
+Linerity  = 1.00
+Angle  = 0.00
+
+------------------------------------------------
+FIND LINE BY CALIPER REGRESSION TEST #6 STARTING
+------------------------------------------------
+Find line status 0
+ReversedFit = 1
+Line slope = 0.00, intercept = 24.00
+Line coordinate: (24.00, 15.00), (24.00, 98.00)
+Linerity  = 1.00
+Angle  = 90.00
 
 ------------------------------------------------------------
 FIND LINE BY CALIPER ROTATED ROI REGRESSION TEST #1 STARTING

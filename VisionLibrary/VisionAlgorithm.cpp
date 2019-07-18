@@ -2223,13 +2223,13 @@ VisionStatus VisionAlgorithm::_writeDeviceRecord(PR_LRN_DEVICE_RPY *pLrnDeviceRp
         vecY.push_back(point.y);
     }
 
-    //For y = kx + b, the k is the slope, when it is very large, the error is quite big, so change
-    //to get the x = k1 + b1, and get the k = 1 / k1, b = -b1 / k1. Then the result is more accurate.
-    pstRpy->bReversedFit = false;
-    if (CalcUtils::calcStdDeviation(vecY) > CalcUtils::calcStdDeviation(vecX))
-        pstRpy->bReversedFit = true;
-
     if (pstCmd->bFindPair) {
+        //For y = kx + b, the k is the slope, when it is very large, the error is quite big, so change
+        //to get the x = k1 + b1, and get the k = 1 / k1, b = -b1 / k1. Then the result is more accurate.
+        pstRpy->bReversedFit = false;
+        if (CalcUtils::calcStdDeviation(vecY) > CalcUtils::calcStdDeviation(vecX))
+            pstRpy->bReversedFit = true;
+
         Fitting::fitParallelLine(vecFitPoint1, vecFitPoint2, pstRpy->fSlope, pstRpy->fIntercept, pstRpy->fIntercept2, pstRpy->bReversedFit);
         pstRpy->stLine = CalcUtils::calcEndPointOfLine(vecFitPoint1, pstRpy->bReversedFit, pstRpy->fSlope, pstRpy->fIntercept);
         pstRpy->stLine2 = CalcUtils::calcEndPointOfLine(vecFitPoint2, pstRpy->bReversedFit, pstRpy->fSlope, pstRpy->fIntercept2);
@@ -2620,10 +2620,14 @@ VisionStatus VisionAlgorithm::_findLineByCaliper(const cv::Mat &matInputImg, con
         auto fInterval = ToFloat(ROWS) / ToFloat(pstCmd->nCaliperCount);
         for (int nCaliperNo = 0; nCaliperNo < pstCmd->nCaliperCount; ++ nCaliperNo) {
             int nCurrentProcessedPos = ToInt32(fInterval * nCaliperNo + pstCmd->fCaliperWidth / 2.f);
+            if (nCurrentProcessedPos > ROWS) break;
+
             int nROISizeBegin = nCurrentProcessedPos - ToInt32(pstCmd->fCaliperWidth / 2.f);
             if (nROISizeBegin < 0) nROISizeBegin = 0;
             int nROISizeEnd = nCurrentProcessedPos + ToInt32(pstCmd->fCaliperWidth / 2.f);
-            if (nROISizeEnd > matInputImg.rows) nROISizeEnd = ROWS;
+            if (nROISizeEnd > ROWS) nROISizeEnd = ROWS;
+            if (nCurrentProcessedPos >= ROWS)
+                nCurrentProcessedPos = ROWS - 1;
             cv::Rect rectSubROI(0, nROISizeBegin, COLS, nROISizeEnd - nROISizeBegin);
             vecSubRects.push_back(rectSubROI);
             cv::Mat matSubROI(matInputImg, rectSubROI);
@@ -2649,10 +2653,13 @@ VisionStatus VisionAlgorithm::_findLineByCaliper(const cv::Mat &matInputImg, con
         for (int nCaliperNo = 0; nCaliperNo < pstCmd->nCaliperCount; ++ nCaliperNo) {
             int nCurrentProcessedPos = ToInt32(fInterval * nCaliperNo + pstCmd->fCaliperWidth / 2.f);
             if (nCurrentProcessedPos > COLS) break;
+
             int nROISizeBegin = nCurrentProcessedPos - ToInt32(pstCmd->fCaliperWidth / 2.f);
             if (nROISizeBegin < 0) nROISizeBegin = 0;
             int nROISizeEnd = nCurrentProcessedPos + ToInt32(pstCmd->fCaliperWidth / 2.f);
             if (nROISizeEnd > matInputImg.cols) nROISizeEnd = COLS;
+            if (nCurrentProcessedPos >= COLS)
+                nCurrentProcessedPos = COLS - 1;
             cv::Rect rectSubROI(nROISizeBegin, 0, nROISizeEnd - nROISizeBegin, ROWS);
             cv::Mat matSubROI(matInputImg, rectSubROI);
             vecSubRects.push_back(rectSubROI);
