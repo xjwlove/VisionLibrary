@@ -1697,12 +1697,13 @@ VisionStatus VisionAlgorithm::_writeDeviceRecord(PR_LRN_DEVICE_RPY *pLrnDeviceRp
     if (PR_FIDUCIAL_MARK_TYPE::SQUARE == pstCmd->enType) {
         cv::rectangle(matTmpl,
             cv::Rect2f(pstCmd->fMargin, pstCmd->fMargin, pstCmd->fSize, pstCmd->fSize),
-            cv::Scalar::all(256),
+            cv::Scalar::all(PR_MAX_GRAY_LEVEL),
             CV_FILLED);
     }
     else if (PR_FIDUCIAL_MARK_TYPE::CIRCLE == pstCmd->enType) {
         auto radius = ToInt32(pstCmd->fSize / 2.f);
-        cv::circle(matTmpl, cv::Point(ToInt32(pstCmd->fMargin) + radius, ToInt32(pstCmd->fMargin) + radius), radius, cv::Scalar::all(256), CV_FILLED);
+        cv::circle(matTmpl, cv::Point(ToInt32(pstCmd->fMargin) + radius, ToInt32(pstCmd->fMargin) + radius), radius,
+            cv::Scalar::all(PR_MAX_GRAY_LEVEL), CV_FILLED);
     }
     else {
         WriteLog("Fiducial mark type is invalid.");
