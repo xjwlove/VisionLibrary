@@ -14,8 +14,11 @@
  * Copyright (c) 2016-2018, Xiao Shengguang.  All rights reserved.
  ****************************************************************************/
 
+//2019-07-14 (XSG) Support 3D height use 10 dlp images.
+#define AOI_VISION_VERSION          "1.00.71"
+
 //2019-06-25 (XSG) Add more parameters in PR_CALC_MERGE_4_DLP_HEIGHT_CMD.
-#define AOI_VISION_VERSION          "1.00.70"
+//#define AOI_VISION_VERSION          "1.00.70"
 
 //2019-06-11 (XSG) Add PR_MeasureDist function.
 //#define AOI_VISION_VERSION          "1.00.69"

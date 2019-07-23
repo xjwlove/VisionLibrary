@@ -22,6 +22,7 @@ namespace Vision
 /*static*/ Calc3DHeightVars CudaAlgorithm::m_arrCalc3DHeightVars[NUM_OF_DLP];
 /*static*/ cv::Ptr<cv::cuda::Filter> CudaAlgorithm::m_ptrXDiffFilter;
 /*static*/ cv::Ptr<cv::cuda::Filter> CudaAlgorithm::m_ptrYDiffFilter;
+/*static*/ cv::Ptr<cv::cuda::Filter> CudaAlgorithm::m_ptrGaussianFilterAlpha;
 /*static*/ cv::Ptr<cv::cuda::Filter> CudaAlgorithm::m_ptrGaussianFilter;
 /*static*/ VectorOfGpuMat CudaAlgorithm::m_arrVecGpuMat[NUM_OF_DLP];
 /*static*/ bool CudaAlgorithm::m_bParamsInitialized = false;
@@ -53,6 +54,9 @@ static int divUp(int total, int grain)
     cv::Mat matKernelY = (cv::Mat_<float>(2, 1) << -1, 1);
     m_ptrYDiffFilter.release();
     m_ptrYDiffFilter = cv::cuda::createLinearFilter(CV_32FC1, CV_32FC1, matKernelY, cv::Point(-1, -1), cv::BORDER_CONSTANT);
+
+    m_ptrGaussianFilterAlpha.release();
+    m_ptrGaussianFilterAlpha = cv::cuda::createGaussianFilter(CV_32FC1, CV_32FC1, cv::Size(11, 11), 15, 15, cv::BorderTypes::BORDER_REPLICATE);
 
     m_ptrGaussianFilter.release();
     m_ptrGaussianFilter = cv::cuda::createGaussianFilter(CV_32FC1, CV_32FC1, cv::Size(5, 5), 5, 5, cv::BorderTypes::BORDER_REPLICATE);
@@ -161,9 +165,10 @@ static int divUp(int total, int grain)
 
         m_arrCalc3DHeightVars[dlp].matAlpha = cv::cuda::GpuMat(2048, 2040, CV_32FC1);
         m_arrCalc3DHeightVars[dlp].matBeta = cv::cuda::GpuMat(2048, 2040, CV_32FC1);
+        m_arrCalc3DHeightVars[dlp].matBeta1 = cv::cuda::GpuMat(2048, 2040, CV_32FC1);
         m_arrCalc3DHeightVars[dlp].matGamma = cv::cuda::GpuMat(2048, 2040, CV_32FC1);
         m_arrCalc3DHeightVars[dlp].matGamma1 = cv::cuda::GpuMat(2048, 2040, CV_32FC1);
-        m_arrCalc3DHeightVars[dlp].matAvgUnderTolIndex = cv::cuda::GpuMat(2048, 2040, CV_8UC1);
+        m_arrCalc3DHeightVars[dlp].matAvgUnderTolGpu = cv::cuda::GpuMat(2048, 2040, CV_8UC1);
         m_arrCalc3DHeightVars[dlp].matBufferGpu = cv::cuda::GpuMat(2048, 2040, CV_32FC1);
         m_arrCalc3DHeightVars[dlp].matBufferGpuT = cv::cuda::GpuMat(2040, 2048, CV_32FC1);
         m_arrCalc3DHeightVars[dlp].matBufferGpuT_1 = cv::cuda::GpuMat(2040, 2048, CV_32FC1);
@@ -253,7 +258,7 @@ static int divUp(int total, int grain)
         m_arrCalc3DHeightVars[dlp].matBeta.release();
         m_arrCalc3DHeightVars[dlp].matGamma.release();
         m_arrCalc3DHeightVars[dlp].matGamma1.release();
-        m_arrCalc3DHeightVars[dlp].matAvgUnderTolIndex.release();
+        m_arrCalc3DHeightVars[dlp].matAvgUnderTolGpu.release();
         m_arrCalc3DHeightVars[dlp].matBufferGpu.release();
         m_arrCalc3DHeightVars[dlp].matBufferGpuT.release();
         m_arrCalc3DHeightVars[dlp].matBufferGpuT_1.release();
@@ -295,11 +300,11 @@ static int divUp(int total, int grain)
 
 /*static*/ void CudaAlgorithm::calcPhase(
     const cv::cuda::GpuMat& matInput0,
-        const cv::cuda::GpuMat& matInput1,
-        const cv::cuda::GpuMat& matInput2,
-        const cv::cuda::GpuMat& matInput3,
-        cv::cuda::GpuMat& matPhase,
-        cv::cuda::Stream& stream /*= cv::cuda::Stream::Null()*/) {
+    const cv::cuda::GpuMat& matInput1,
+    const cv::cuda::GpuMat& matInput2,
+    const cv::cuda::GpuMat& matInput3,
+    cv::cuda::GpuMat& matPhase,
+    cv::cuda::Stream& stream /*= cv::cuda::Stream::Null()*/) {
     dim3 threads(16, 16);
     dim3 grid(divUp(matInput0.cols, threads.x), divUp(matInput0.rows, threads.y));
     run_kernel_calc_phase(grid, threads, cv::cuda::StreamAccessor::getStream(stream),
@@ -329,6 +334,46 @@ static int divUp(int total, int grain)
         matInput1.data,
         matInput2.data,
         matInput3.data,
+        reinterpret_cast<float *>(matPhase.data),
+        matMask.data,
+        fMinimumAlpitudeSquare,
+        matInput0.rows,
+        matInput0.cols,
+        ToInt32(matInput0.step1()));
+}
+
+/*static*/ void CudaAlgorithm::calcPhase(
+        const cv::cuda::GpuMat& matInput0,
+        const cv::cuda::GpuMat& matInput1,
+        const cv::cuda::GpuMat& matInput2,
+        cv::cuda::GpuMat& matPhase,
+        cv::cuda::Stream& stream/* = cv::cuda::Stream::Null()*/) {
+    dim3 threads(16, 16);
+    dim3 grid(divUp(matInput0.cols, threads.x), divUp(matInput0.rows, threads.y));
+    run_kernel_calc_phase_3_images(grid, threads, cv::cuda::StreamAccessor::getStream(stream),
+        matInput0.data,
+        matInput1.data,
+        matInput2.data,
+        reinterpret_cast<float *>(matPhase.data),
+        matInput0.rows,
+        matInput0.cols,
+        ToInt32(matInput0.step1()));
+}
+
+/*static*/ void CudaAlgorithm::calcPhaseAndMask(
+    const cv::cuda::GpuMat& matInput0,
+    const cv::cuda::GpuMat& matInput1,
+    const cv::cuda::GpuMat& matInput2,
+    cv::cuda::GpuMat& matPhase,
+    cv::cuda::GpuMat& matMask,
+    float fMinimumAlpitudeSquare,
+    cv::cuda::Stream& stream/* = cv::cuda::Stream::Null()*/) {
+    dim3 threads(16, 16);
+    dim3 grid(divUp(matInput0.cols, threads.x), divUp(matInput0.rows, threads.y));
+    run_kernel_calc_phase_and_dark_mask_3_images(grid, threads, cv::cuda::StreamAccessor::getStream(stream),
+        matInput0.data,
+        matInput1.data,
+        matInput2.data,
         reinterpret_cast<float *>(matPhase.data),
         matMask.data,
         fMinimumAlpitudeSquare,
@@ -404,6 +449,45 @@ static int divUp(int total, int grain)
     return result;
 }
 
+/*static*/ void CudaAlgorithm::getBaseFromGrid(const cv::cuda::GpuMat& matInput, cv::cuda::GpuMat& matBaseResult,
+    int gridX, int gridY,
+    float* buffer, float* buffer1, float* buffer2, float* baseValues,
+    cv::cuda::Stream& stream /*= cv::cuda::Stream::Null()*/) {
+
+    matBaseResult.setTo(0, stream);
+    const dim3 gridSize(gridX, gridY);
+    const int threadSize = 1;
+    run_kernel_get_base_from_grid(
+        gridSize,
+        threadSize,
+        cv::cuda::StreamAccessor::getStream(stream),
+        reinterpret_cast<float *>(matInput.data),
+        reinterpret_cast<float *>(matBaseResult.data),
+        ToInt32(matInput.step1()),
+        matInput.rows,
+        matInput.cols,
+        gridX,
+        gridY,
+        buffer,
+        buffer1,
+        buffer2,
+        baseValues);
+
+    //dim3 threads(16, 16);
+    //dim3 grid(divUp(matInput.cols, threads.x), divUp(matInput.rows, threads.y));
+    //run_kernel_set_base_value_to_matrix(
+    //    grid,
+    //    threads,
+    //    cv::cuda::StreamAccessor::getStream(stream),
+    //    reinterpret_cast<float *>(matBaseResult.data),
+    //    ToInt32(matBaseResult.step1()),
+    //    matBaseResult.rows,
+    //    matBaseResult.cols,
+    //    gridX,
+    //    gridY,
+    //    baseValues);
+}
+
 /*static*/ void CudaAlgorithm::phaseWrapBuffer(cv::cuda::GpuMat& matPhase,
     cv::cuda::GpuMat& matBuffer,
     float* d_tmpVar,
@@ -441,6 +525,16 @@ static int divUp(int total, int grain)
     cv::cuda::Stream& stream /*= cv::cuda::Stream::Null()*/) {
     //cv::Mat matResult = matPhase / ONE_CYCLE + 0.5 - fShift;
     cv::cuda::addWeighted(matPhase, 1.f / ONE_CYCLE, matResult, 0, 0.5 - fShift, matResult, -1, stream);
+
+    floor(matResult, stream);
+
+    //matResult = matPhase - matResult * ONE_CYCLE;
+    cv::cuda::addWeighted(matPhase, 1.f, matResult, -ONE_CYCLE, 0, matResult, -1, stream);
+}
+
+/*static*/ void CudaAlgorithm::phaseWarpNoAutoBase(const cv::cuda::GpuMat& matPhase, cv::cuda::GpuMat& matResult, cv::cuda::GpuMat& matPhaseShift,
+        cv::cuda::Stream& stream/* = cv::cuda::Stream::Null()*/) {
+    cv::cuda::addWeighted(matPhase, 1.f / ONE_CYCLE, matPhaseShift, -1.f, 0.5f, matResult, -1, stream);
 
     floor(matResult, stream);
 
@@ -1013,10 +1107,10 @@ static int divUp(int total, int grain)
         cv::cuda::GpuMat& matBigDiffMask,
         cv::cuda::GpuMat& matBigDiffMaskFloat,
         cv::cuda::GpuMat& matDiffResultDiff,
-        int*           pMergeIndexBuffer,
-        float*         pCmpTargetBuffer,
-        float fDiffThreshold,
-        PR_DIRECTION enProjDir,
+        int*              pMergeIndexBuffer,
+        float*            pCmpTargetBuffer,
+        float             fDiffThreshold,
+        PR_DIRECTION      enProjDir,
         cv::cuda::GpuMat& matMergeResult,
         cv::cuda::GpuMat& matResultNan,
         cv::cuda::Stream& stream /*= cv::cuda::Stream::Null()*/) {
@@ -1027,40 +1121,40 @@ static int divUp(int total, int grain)
         enProjDir2 = static_cast<PR_DIRECTION>(1 - ToInt32(enProjDir));
 
     matHeightOneInput.copyTo(matBufferGpu1, stream); // matBufferGpu1 is matH13
-    CudaAlgorithm::phasePatch(matBufferGpu1, matNanMaskOne, enProjDir2, stream);
+    CudaAlgorithm::phasePatch(matBufferGpu1, matNanMaskOne, enProjDir, stream);
 
     matHeightTwoInput.copyTo(matBufferGpu2, stream); // matBufferGpu2 is matH23
-    CudaAlgorithm::phasePatch(matBufferGpu2, matNanMaskTwo, enProjDir, stream);
+    CudaAlgorithm::phasePatch(matBufferGpu2, matNanMaskTwo, enProjDir2, stream);
 
-    // Matlab: idxh2 = find(H22(idxnan1) - H13(idxnan1) > 0.05);
-    //         idxh1 = find(H11(idxnan2) - H23(idxnan2) > 0.05);
-    cv::cuda::add(matBufferGpu1, 0.05f, matBufferGpu1, cv::cuda::GpuMat(), -1, stream);
-    cv::cuda::add(matBufferGpu2, 0.05f, matBufferGpu2, cv::cuda::GpuMat(), -1, stream);
-    
-    //idxh2 = (matHeightTwo - matH13) > 0.05f; idxh2 = idxh2 & matNanMaskOne;
-    //idxh1 = (matHeightOne - matH23) > 0.05f; idxh1 = idxh1 & matNanMaskTwo;
-    cv::cuda::compare(matHeightTwoInput, matBufferGpu1, matMaskGpu2, cv::CmpTypes::CMP_GT, stream);
-    cv::cuda::bitwise_and(matMaskGpu2, matNanMaskOne, matMaskGpu2, cv::cuda::GpuMat(), stream);
+    //// Matlab: idxh2 = find(H22(idxnan1) - H13(idxnan1) > 0.05);
+    ////         idxh1 = find(H11(idxnan2) - H23(idxnan2) > 0.05);
+    //cv::cuda::add(matBufferGpu1, 0.05f, matBufferGpu1, cv::cuda::GpuMat(), -1, stream);
+    //cv::cuda::add(matBufferGpu2, 0.05f, matBufferGpu2, cv::cuda::GpuMat(), -1, stream);
+    //
+    ////idxh2 = (matHeightTwo - matH13) > 0.05f; idxh2 = idxh2 & matNanMaskOne;
+    ////idxh1 = (matHeightOne - matH23) > 0.05f; idxh1 = idxh1 & matNanMaskTwo;
+    //cv::cuda::compare(matHeightTwoInput, matBufferGpu1, matMaskGpu2, cv::CmpTypes::CMP_GT, stream);
+    //cv::cuda::bitwise_and(matMaskGpu2, matNanMaskOne, matMaskGpu2, cv::cuda::GpuMat(), stream);
 
-    cv::cuda::compare(matHeightOneInput, matBufferGpu2, matMaskGpu1, cv::CmpTypes::CMP_GT, stream);
-    cv::cuda::bitwise_and(matMaskGpu1, matNanMaskTwo, matMaskGpu1, cv::cuda::GpuMat(), stream);
+    //cv::cuda::compare(matHeightOneInput, matBufferGpu2, matMaskGpu1, cv::CmpTypes::CMP_GT, stream);
+    //cv::cuda::bitwise_and(matMaskGpu1, matNanMaskTwo, matMaskGpu1, cv::cuda::GpuMat(), stream);
 
-    //cv::Mat idxnant1 = matNanMaskOne.clone(); idxnant1.setTo(255, idxh1);
-    //auto idxnant1 = matNanMaskOne.clone(); idxnant1.setTo(255, matMaskGpu1, stream);
-    //cv::Mat idxnant2 = matNanMaskTwo.clone(); idxnant2.setTo(255, idxh2);
-    //auto idxnant2 = matNanMaskTwo.clone(); idxnant2.setTo(255, matMaskGpu2, stream);
+    ////cv::Mat idxnant1 = matNanMaskOne.clone(); idxnant1.setTo(255, idxh1);
+    ////auto idxnant1 = matNanMaskOne.clone(); idxnant1.setTo(255, matMaskGpu1, stream);
+    ////cv::Mat idxnant2 = matNanMaskTwo.clone(); idxnant2.setTo(255, idxh2);
+    ////auto idxnant2 = matNanMaskTwo.clone(); idxnant2.setTo(255, matMaskGpu2, stream);
 
-    matNanMaskOne.setTo(PR_MAX_GRAY_LEVEL, matMaskGpu1, stream);
-    matNanMaskTwo.setTo(PR_MAX_GRAY_LEVEL, matMaskGpu2, stream);
+    //matNanMaskOne.setTo(PR_MAX_GRAY_LEVEL, matMaskGpu1, stream);
+    //matNanMaskTwo.setTo(PR_MAX_GRAY_LEVEL, matMaskGpu2, stream);
     
     if (PR_DIRECTION::UP == enProjDir || PR_DIRECTION::DOWN == enProjDir) {
-        cv::cuda::transpose(matHeightOneInput, matHeightOne, stream);
-        cv::cuda::transpose(matHeightTwoInput, matHeightTwo, stream);
+        cv::cuda::transpose(matBufferGpu1, matHeightOne, stream);
+        cv::cuda::transpose(matBufferGpu2, matHeightTwo, stream);
         cv::cuda::transpose(matNanMaskOne, matMaskGpu3, stream);
         cv::cuda::transpose(matNanMaskTwo, matMaskGpu4, stream);
     }else {
-        matHeightOneInput.copyTo(matHeightOne, stream);
-        matHeightTwoInput.copyTo(matHeightTwo, stream);
+        matBufferGpu1.copyTo(matHeightOne, stream);
+        matBufferGpu2.copyTo(matHeightTwo, stream);
         matNanMaskOne.copyTo(matMaskGpu3, stream);
         matNanMaskTwo.copyTo(matMaskGpu4, stream);
     }
@@ -1132,8 +1226,8 @@ static int divUp(int total, int grain)
         cv::cuda::GpuMat& matNanMaskTwo,
         Calc3DHeightVars& calc3DHeightVar0,
         Calc3DHeightVars& calc3DHeightVar1,
-        float fDiffThreshold,
-        PR_DIRECTION enProjDir,
+        float             fDiffThreshold,
+        PR_DIRECTION      enProjDir,
         cv::cuda::GpuMat& matResultNan,
         cv::cuda::Stream& stream /*= cv::cuda::Stream::Null()*/) {
     cv::cuda::GpuMat& matBufferGpu1 = calc3DHeightVar0.matAlpha;
@@ -1158,10 +1252,10 @@ static int divUp(int total, int grain)
         matDiffResultDiff = calc3DHeightVar0.matDiffResultT_1;
     }
     else {
-        matHeightOne = calc3DHeightVar0.matGamma;
-        matHeightTwo = calc3DHeightVar0.matGamma1;
-        matHeightTre = calc3DHeightVar0.matBufferGpu;
-        matHeightFor = calc3DHeightVar1.matBufferGpu;
+        matHeightOne = calc3DHeightVar0.matBeta1;
+        matHeightTwo = calc3DHeightVar1.matBeta1;
+        matHeightTre = calc3DHeightVar0.matGamma1;
+        matHeightFor = calc3DHeightVar1.matGamma1;
         matMaskGpu3 = calc3DHeightVar0.matMaskGpu_1;
         matMaskGpu4 = calc3DHeightVar1.matMaskGpu_1;
         matAbsDiff = calc3DHeightVar0.matDiffResult;
@@ -1199,6 +1293,17 @@ static int divUp(int total, int grain)
         matResultNan,
         stream);
     return matMergeResult;
+}
+
+/*static*/ void CudaAlgorithm::getOverlapMask(
+        const cv::cuda::GpuMat& matHeightOne,
+        const cv::cuda::GpuMat& matHeightTwo,
+        cv::cuda::GpuMat&       matBuffer,
+        float                   fDiffThreshold,
+        cv::cuda::GpuMat&       matOverlap,
+        cv::cuda::Stream&       stream /*= cv::cuda::Stream::Null()*/) {
+    cv::cuda::absdiff(matHeightOne, matHeightTwo, matBuffer, stream);
+    cv::cuda::compare(matBuffer, fDiffThreshold / 2.f, matOverlap, cv::CmpTypes::CMP_LT, stream);
 }
 
 /*static*/ void CudaAlgorithm::chooseMinValueForMask(

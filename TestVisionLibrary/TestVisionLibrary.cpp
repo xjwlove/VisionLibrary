@@ -677,6 +677,8 @@ int _tmain(int argc, _TCHAR* argv[])
 
     auto fFloorResult = std::floor(fTest);
 
+    std::cout << "Floor of " << fTest << " is " << fFloorResult << std::endl;
+
     PR_Init();
     PR_SetDebugMode(PR_DEBUG_MODE::LOG_FAIL_CASE);
 
@@ -799,8 +801,9 @@ int _tmain(int argc, _TCHAR* argv[])
 
     //TestCalc4DLPHeight();
     //TestCalc4DLPHeightOnePass();
-    //TestCalc4DLPHeight_SimulateMachine();
-    TestSimulateDlpHeightOffsetCalib();
+    TestCalc4DLPHeight_SimulateMachine();
+    //TestCalc4DLPHeight_10_Images_SimulateMachine();
+    //TestSimulateDlpHeightOffsetCalib();
     //CompareHeightSame();
     //TestScanImage();
     //VeryHeightMergeResult();

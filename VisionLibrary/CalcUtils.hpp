@@ -73,7 +73,7 @@ public:
 
     //Calculate deviation in one pass. The algorithm is get from https://www.strchr.com/standard_deviation_in_one_pass
     template<typename T>
-    static double calcStdDeviation(std::vector<T> vecValue) {
+    static double calcStdDeviation(const std::vector<T>& vecValue) {
         if (vecValue.empty())
             return 0.0;
         double sum = 0;
@@ -85,6 +85,7 @@ public:
         auto n = vecValue.size();
         double mean = sum / n;
         double variance = sq_sum / n - mean * mean;
+        if (variance < 0.) return 0.;
         return sqrt(variance);
     }
 

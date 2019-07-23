@@ -48,7 +48,77 @@ static String formatRect(const cv::Rect_<T> &rect)
     return ss.str();
 }
 
-static void TestCalcUtilsCumSum() {    
+static void TestBilinearInterpolation() {
+    {
+        VectorOfPoint2f vecPoints{cv::Point2f(0.f, 0.f), cv::Point2f(0.f, 100.f), cv::Point2f(100.f, 100.f), cv::Point2f(100.f, 0.f)};
+        VectorOfFloat vecValues{10.f, 20.f, 30.f, 40.f};
+
+        std::cout << std::endl << "------------------------------------------------";
+        std::cout << std::endl << "BILINEAR INTERPOLATION TEST #1 STARTING";
+        std::cout << std::endl << "------------------------------------------------";
+        std::cout << std::endl;
+
+        cv::Point2f ptToGet = cv::Point2f (100.f, 0.f);
+        float fResult = 0.f;
+        fResult = CalcUtils::bilinearInterpolate(vecPoints, vecValues, ptToGet);
+        std::cout << "Point " << ptToGet << " result " << fResult << std::endl;
+
+        ptToGet = cv::Point2f (50.f, 50.f);
+        fResult = CalcUtils::bilinearInterpolate(vecPoints, vecValues, ptToGet);
+        std::cout << "Point " << ptToGet << " result " << fResult << std::endl;
+
+        ptToGet = cv::Point2f (10.f, 15.f);
+        fResult = CalcUtils::bilinearInterpolate(vecPoints, vecValues, ptToGet);
+        std::cout << "Point " << ptToGet << " result " << fResult << std::endl;
+
+        ptToGet = cv::Point2f (99.f, 99.f);
+        fResult = CalcUtils::bilinearInterpolate(vecPoints, vecValues, ptToGet);
+        std::cout << "Point " << ptToGet << " result " << fResult << std::endl;
+    }
+
+     {
+        VectorOfPoint2f vecPoints{cv::Point2f(0.f, 0.f), cv::Point2f(0.f, 0.f), cv::Point2f(100.f, 0.f), cv::Point2f(100.f, 0.f)};
+        VectorOfFloat vecValues{10.f, 10.f, 20.f, 20.f};
+
+        std::cout << std::endl << "------------------------------------------------";
+        std::cout << std::endl << "BILINEAR INTERPOLATION TEST #2 STARTING";
+        std::cout << std::endl << "------------------------------------------------";
+        std::cout << std::endl;
+
+        cv::Point2f ptToGet = cv::Point2f (100.f, 0.f);
+        float fResult = 0.f;
+        fResult = CalcUtils::bilinearInterpolate(vecPoints, vecValues, ptToGet);
+        std::cout << "Point " << ptToGet << " result " << fResult << std::endl;
+
+        ptToGet = cv::Point2f (20.f, 0.f);
+        fResult = CalcUtils::bilinearInterpolate(vecPoints, vecValues, ptToGet);
+        std::cout << "Point " << ptToGet << " result " << fResult << std::endl;
+
+        ptToGet = cv::Point2f (50.f, 0.f);
+        fResult = CalcUtils::bilinearInterpolate(vecPoints, vecValues, ptToGet);
+        std::cout << "Point " << ptToGet << " result " << fResult << std::endl;
+
+        ptToGet = cv::Point2f (70.f, 0.f);
+        fResult = CalcUtils::bilinearInterpolate(vecPoints, vecValues, ptToGet);
+        std::cout << "Point " << ptToGet << " result " << fResult << std::endl;
+    }
+}
+
+static void TestCalcStdDeviation() {
+    std::cout << std::endl << "----------------------------------------------";
+    std::cout << std::endl << "CALC STD DEVIATION REGRESSION TEST #1 STARTING";
+    std::cout << std::endl << "----------------------------------------------";
+    std::cout << std::endl;
+
+    std::vector<float> vecX;
+    for (int i = 0; i < 20; ++i)
+        vecX.push_back(10831.f);
+
+    auto result = CalcUtils::calcStdDeviation(vecX);
+    std::cout << "Std Deviation: " << result << std::endl;
+}
+
+static void TestCalcUtilsCumSum() {
     {
         std::cout << std::endl << "------------------------------------------";
         std::cout << std::endl << "CUMSUM REGRESSION TEST #1 STARTING";
@@ -514,62 +584,6 @@ static void TestFitCircle() {
     std::cout << "Fit circle center " << fitResult.center << ", Radius " << fitResult.size.width / 2.f << std::endl;
 }
 
-static void TestBilinearInterpolation() {
-    {
-        VectorOfPoint2f vecPoints{cv::Point2f(0.f, 0.f), cv::Point2f(0.f, 100.f), cv::Point2f(100.f, 100.f), cv::Point2f(100.f, 0.f)};
-        VectorOfFloat vecValues{10.f, 20.f, 30.f, 40.f};
-
-        std::cout << std::endl << "------------------------------------------------";
-        std::cout << std::endl << "BILINEAR INTERPOLATION TEST #1 STARTING";
-        std::cout << std::endl << "------------------------------------------------";
-        std::cout << std::endl;
-
-        cv::Point2f ptToGet = cv::Point2f (100.f, 0.f);
-        float fResult = 0.f;
-        fResult = CalcUtils::bilinearInterpolate(vecPoints, vecValues, ptToGet);
-        std::cout << "Point " << ptToGet << " result " << fResult << std::endl;
-
-        ptToGet = cv::Point2f (50.f, 50.f);
-        fResult = CalcUtils::bilinearInterpolate(vecPoints, vecValues, ptToGet);
-        std::cout << "Point " << ptToGet << " result " << fResult << std::endl;
-
-        ptToGet = cv::Point2f (10.f, 15.f);
-        fResult = CalcUtils::bilinearInterpolate(vecPoints, vecValues, ptToGet);
-        std::cout << "Point " << ptToGet << " result " << fResult << std::endl;
-
-        ptToGet = cv::Point2f (99.f, 99.f);
-        fResult = CalcUtils::bilinearInterpolate(vecPoints, vecValues, ptToGet);
-        std::cout << "Point " << ptToGet << " result " << fResult << std::endl;
-    }
-
-     {
-        VectorOfPoint2f vecPoints{cv::Point2f(0.f, 0.f), cv::Point2f(0.f, 0.f), cv::Point2f(100.f, 0.f), cv::Point2f(100.f, 0.f)};
-        VectorOfFloat vecValues{10.f, 10.f, 20.f, 20.f};
-
-        std::cout << std::endl << "------------------------------------------------";
-        std::cout << std::endl << "BILINEAR INTERPOLATION TEST #2 STARTING";
-        std::cout << std::endl << "------------------------------------------------";
-        std::cout << std::endl;
-
-        cv::Point2f ptToGet = cv::Point2f (100.f, 0.f);
-        float fResult = 0.f;
-        fResult = CalcUtils::bilinearInterpolate(vecPoints, vecValues, ptToGet);
-        std::cout << "Point " << ptToGet << " result " << fResult << std::endl;
-
-        ptToGet = cv::Point2f (20.f, 0.f);
-        fResult = CalcUtils::bilinearInterpolate(vecPoints, vecValues, ptToGet);
-        std::cout << "Point " << ptToGet << " result " << fResult << std::endl;
-
-        ptToGet = cv::Point2f (50.f, 0.f);
-        fResult = CalcUtils::bilinearInterpolate(vecPoints, vecValues, ptToGet);
-        std::cout << "Point " << ptToGet << " result " << fResult << std::endl;
-
-        ptToGet = cv::Point2f (70.f, 0.f);
-        fResult = CalcUtils::bilinearInterpolate(vecPoints, vecValues, ptToGet);
-        std::cout << "Point " << ptToGet << " result " << fResult << std::endl;
-    }
-}
-
 static void TestGpuMatFloor() {
     std::cout << std::endl << "------------------------------------------------";
     std::cout << std::endl << "CUDA GPU FLOOR TEST #1 STARTING";
@@ -802,7 +816,7 @@ static void TestCudaGetNanMask() {
 
 static void TestChooseMinValueForMask() {
     std::cout << std::endl << "----------------------------------------------------------";
-    std::cout << std::endl << "CUDA CHOOST MIN VALUE INTERVAL TEST #1 STARTING";
+    std::cout << std::endl << "CUDA CHOOSE MIN VALUE INTERVAL TEST #1 STARTING";
     std::cout << std::endl << "----------------------------------------------------------";
     std::cout << std::endl;
     const int ROWS = 2048;
@@ -881,9 +895,89 @@ static void TestMergeHeightIntersect() {
     //matGpuH4.download(matCpuH4);
 }
 
+static void TestGetBaseFromGrid_1() {
+    std::cout << std::endl << "----------------------------------------------------------";
+    std::cout << std::endl << "CUDA GET BASE FROM GRID INTERNAL TEST #1 STARTING";
+    std::cout << std::endl << "----------------------------------------------------------";
+    std::cout << std::endl;
+
+    const int ROWS = 2048, COLS = 2040;
+
+    cv::Mat matInput = cv::Mat::ones(ROWS, COLS, CV_32FC1);
+    for (int i = 0; i < 200000; ++ i) {
+        int row = std::rand () % ROWS;
+        int col = std::rand () % COLS;
+        matInput.at<float>(row, col) = float(std::rand () % 500) / 100.f - 2.5f;
+    }
+
+    cv::cuda::GpuMat matInputGpu, matBaseGpu(ROWS, COLS, CV_32FC1);
+    matInputGpu.upload(matInput);
+    float *buffer, *buffer1, *buffer2, *baseValues;
+    const int gridX = 10, gridY = 10;
+    cudaError_t err = cudaMalloc(reinterpret_cast<void **>(&buffer), ROWS * COLS * 4 * sizeof(float));
+    err = cudaMalloc(reinterpret_cast<void **>(&buffer1), ROWS * COLS / 2 * sizeof(float));
+    err = cudaMalloc(reinterpret_cast<void **>(&buffer2), ROWS * COLS / 2 * sizeof(float));
+    err = cudaMalloc(reinterpret_cast<void **>(&baseValues), gridX * gridY * sizeof(float));
+    CudaAlgorithm::getBaseFromGrid(matInputGpu, matBaseGpu, 10, 10, buffer, buffer1, buffer2, baseValues);
+    cv::Mat matBase;
+    matBaseGpu.download(matBase);
+    std::cout << std::fixed << std::setprecision(2);
+    for (int row = 0; row < ROWS; row += 200) {
+        for(int col = 0; col < COLS; col += 200) {
+            std::cout << matBase.at<float>(row, col) << " ";
+        }
+        std::cout << std::endl;
+    }
+    cudaFree(buffer);
+    cudaFree(buffer1);
+    cudaFree(buffer2);
+    cudaFree(baseValues);
+}
+
+static void TestGetBaseFromGrid_2() {
+    std::cout << std::endl << "----------------------------------------------------------";
+    std::cout << std::endl << "CUDA GET BASE FROM GRID INTERNAL TEST #2 STARTING";
+    std::cout << std::endl << "----------------------------------------------------------";
+    std::cout << std::endl;
+
+    const int ROWS = 2048, COLS = 2040;
+
+    cv::Mat matInput = cv::Mat::ones(ROWS, COLS, CV_32FC1);
+    cv::Mat matROI(matInput, cv::Range(512, 1536), cv::Range(512, 1536));
+    matROI.setTo(2);
+    for (int i = 0; i < 200000; ++ i) {
+        int row = std::rand () % ROWS;
+        int col = std::rand () % COLS;
+        matInput.at<float>(row, col) = float(std::rand () % 500) / 100.f - 2.5f;
+    }
+
+    cv::cuda::GpuMat matInputGpu, matBaseGpu(ROWS, COLS, CV_32FC1);
+    matInputGpu.upload(matInput);
+    float *buffer, *buffer1, *buffer2, *baseValues;
+    const int gridX = 10, gridY = 10;
+    cudaError_t err = cudaMalloc(reinterpret_cast<void **>(&buffer), ROWS * COLS * 4 * sizeof(float));
+    err = cudaMalloc(reinterpret_cast<void **>(&buffer1), ROWS * COLS / 2 * sizeof(float));
+    err = cudaMalloc(reinterpret_cast<void **>(&buffer2), ROWS * COLS / 2 * sizeof(float));
+    err = cudaMalloc(reinterpret_cast<void **>(&baseValues), gridX * gridY * sizeof(float));
+    CudaAlgorithm::getBaseFromGrid(matInputGpu, matBaseGpu, 10, 10, buffer, buffer1, buffer2, baseValues);
+    cv::Mat matBase;
+    matBaseGpu.download(matBase);
+    std::cout << std::fixed << std::setprecision(2);
+    for (int row = 0; row < ROWS; row += 200) {
+        for(int col = 0; col < COLS; col += 200) {
+            std::cout << matBase.at<float>(row, col) << " ";
+        }
+        std::cout << std::endl;
+    }
+    cudaFree(buffer);
+    cudaFree(buffer1);
+    cudaFree(buffer2);
+    cudaFree(baseValues);
+}
+
 void InternalTest() {
-    TestMergeHeightIntersect();
     TestBilinearInterpolation();
+    TestCalcStdDeviation();
     TestCalcUtilsCumSum();
     TestCalcUtilsIntervals();
     TestCalcUtilsMeshGrid();
@@ -906,6 +1000,8 @@ void InternalTest() {
     TestCudaPhasePatch();
     TestCudaGetNanMask();
     TestChooseMinValueForMask();
+    TestGetBaseFromGrid_1();
+    TestGetBaseFromGrid_2();
 }
 
 }

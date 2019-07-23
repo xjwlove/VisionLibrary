@@ -14,9 +14,10 @@ namespace Vision
 struct Calc3DHeightVars {
     cv::cuda::GpuMat matAlpha;
     cv::cuda::GpuMat matBeta;
+    cv::cuda::GpuMat matBeta1;
     cv::cuda::GpuMat matGamma;
     cv::cuda::GpuMat matGamma1;
-    cv::cuda::GpuMat matAvgUnderTolIndex;
+    cv::cuda::GpuMat matAvgUnderTolGpu;
     cv::cuda::GpuMat matBufferGpu;
     cv::cuda::GpuMat matBufferGpuT;
     cv::cuda::GpuMat matBufferGpuT_1;
@@ -59,6 +60,7 @@ class CudaAlgorithm
     static bool m_bParamsInitialized;
 
 public:
+    static cv::Ptr<cv::cuda::Filter> m_ptrGaussianFilterAlpha;
     static cv::Ptr<cv::cuda::Filter> m_ptrGaussianFilter;
     static VectorOfGpuMat m_arrVecGpuMat[NUM_OF_DLP];
 
@@ -90,16 +92,35 @@ public:
         cv::cuda::GpuMat& matMask,
         float fMinimumAlpitudeSquare,
         cv::cuda::Stream& stream = cv::cuda::Stream::Null());
+    static void calcPhase(
+        const cv::cuda::GpuMat& matInput0,
+        const cv::cuda::GpuMat& matInput1,
+        const cv::cuda::GpuMat& matInput2,
+        cv::cuda::GpuMat& matPhase,
+        cv::cuda::Stream& stream = cv::cuda::Stream::Null());
+    static void calcPhaseAndMask(
+        const cv::cuda::GpuMat& matInput0,
+        const cv::cuda::GpuMat& matInput1,
+        const cv::cuda::GpuMat& matInput2,
+        cv::cuda::GpuMat& matPhase,
+        cv::cuda::GpuMat& matMask,
+        float fMinimumAlpitudeSquare,
+        cv::cuda::Stream& stream = cv::cuda::Stream::Null());
     static float intervalAverage(const cv::cuda::GpuMat& matInput, int interval, float *d_result, cudaEvent_t& eventDone,
         cv::cuda::Stream& stream = cv::cuda::Stream::Null());
     static float intervalRangeAverage(const cv::cuda::GpuMat& matInput, int interval, float rangeStart, float rangeEnd, float* d_result,
-        cudaEvent_t& eventDone,
+        cudaEvent_t& eventDone, cv::cuda::Stream& stream = cv::cuda::Stream::Null());
+    static void getBaseFromGrid(const cv::cuda::GpuMat& matInput, cv::cuda::GpuMat& matBaseResult, int gridX, int GridY,
+        float* buffer, float* buffer1, float* buffer2, float* baseValues,
         cv::cuda::Stream& stream = cv::cuda::Stream::Null());
     static void phaseWrapBuffer(cv::cuda::GpuMat& matPhase, cv::cuda::GpuMat& matBuffer, float* d_tmpVar, float fShift,
         cudaEvent_t& eventDone,
         cv::cuda::Stream& stream = cv::cuda::Stream::Null());
     static void phaseWrapByRefer(cv::cuda::GpuMat& matPhase, cv::cuda::GpuMat& matRef, cv::cuda::Stream& stream = cv::cuda::Stream::Null());
-    static void phaseWarpNoAutoBase(const cv::cuda::GpuMat& matPhase, cv::cuda::GpuMat& matResult, float fShift, cv::cuda::Stream& stream = cv::cuda::Stream::Null());
+    static void phaseWarpNoAutoBase(const cv::cuda::GpuMat& matPhase, cv::cuda::GpuMat& matResult, float fShift,
+        cv::cuda::Stream& stream = cv::cuda::Stream::Null());
+    static void phaseWarpNoAutoBase(const cv::cuda::GpuMat& matPhase, cv::cuda::GpuMat& matResult, cv::cuda::GpuMat& matPhaseShift,
+        cv::cuda::Stream& stream = cv::cuda::Stream::Null());
     static void phaseCorrectionCmp(
         cv::cuda::GpuMat& matPhase,
         const cv::cuda::GpuMat& matPhase1,
@@ -184,9 +205,9 @@ public:
         cv::cuda::GpuMat& matHGpu4,
         cv::cuda::GpuMat& matNanMask,
         cv::cuda::GpuMat& matNanMaskDiff,
-        int*           pMergeIndexBuffer,
-        float*         pCmpTargetBuffer,
-        float fDiffThreshold,
+        int*              pMergeIndexBuffer,
+        float*            pCmpTargetBuffer,
+        float             fDiffThreshold,
         cv::cuda::Stream& stream = cv::cuda::Stream::Null());
 
     static void mergeHeightIntersect(
@@ -223,10 +244,18 @@ public:
         cv::cuda::GpuMat& matNanMaskTwo,
         Calc3DHeightVars& calc3DHeightVar0,
         Calc3DHeightVars& calc3DHeightVar1,
-        float fDiffThreshold,
-        PR_DIRECTION enProjDir,
+        float             fDiffThreshold,
+        PR_DIRECTION      enProjDir,
         cv::cuda::GpuMat& matResultNan,
         cv::cuda::Stream& stream = cv::cuda::Stream::Null());
+
+    static void getOverlapMask(
+        const cv::cuda::GpuMat& matHeightOne,
+        const cv::cuda::GpuMat& matHeightTwo,
+        cv::cuda::GpuMat&       matBuffer,
+        float                   fDiffThreshold,
+        cv::cuda::GpuMat&       matOverlap,
+        cv::cuda::Stream&       stream = cv::cuda::Stream::Null());
 
     static void chooseMinValueForMask(
         cv::cuda::GpuMat&       matH1,

@@ -19,7 +19,7 @@
 #define MARK_FUNCTION_START_TIME    CStopWatch      stopWatch; __int64 functionStart = stopWatch.AbsNow()
 #define MARK_FUNCTION_END_TIME      TimeLog::GetInstance()->addTimeLog( __FUNCTION__, stopWatch.AbsNow() - functionStart)
 
-static const std::string INTER_RESULT_FOLDER("C:/Data/2019_06_04_New_3D_Scan_Image_mobile_board/Scan_Image_Frame_And_Big_Image/Frame_Image/Frame_3_Result/");
+static const std::string INTER_RESULT_FOLDER("C:/Data/2019_06_04_New_3D_Scan_Image_mobile_board/Scan_Image_Frame_And_Big_Image/Frame_Image/Frame_8_Result/");
 
 namespace AOI
 {
@@ -820,10 +820,21 @@ static inline cv::Mat calcOrder5BezierCoeff(const cv::Mat &matU) {
     TimeLog::GetInstance()->addTimeLog("Convert image to float.", stopWatch.Span());
 
     if (pstCmd->bReverseSeq) {
-        std::swap(vecConvertedImgs[1], vecConvertedImgs[3]);
-        std::swap(vecConvertedImgs[5], vecConvertedImgs[7]);
-        if (pstCmd->bUseThinnestPattern)
-            std::swap(vecConvertedImgs[9], vecConvertedImgs[11]);
+        if (12 == vecConvertedImgs.size()) {
+            std::swap(vecConvertedImgs[1], vecConvertedImgs[3]);
+            std::swap(vecConvertedImgs[5], vecConvertedImgs[7]);
+            if (pstCmd->bUseThinnestPattern)
+                std::swap(vecConvertedImgs[9], vecConvertedImgs[11]);
+        }
+        else if (10 == vecConvertedImgs.size()){
+            std::swap(vecConvertedImgs[1], vecConvertedImgs[2]);
+            std::swap(vecConvertedImgs[4], vecConvertedImgs[5]);
+            if (pstCmd->bUseThinnestPattern)
+                std::swap(vecConvertedImgs[7], vecConvertedImgs[9]);
+        }
+        else {
+            throw std::exception("Input image number for dlp should be 10 or 12");
+        }
     }
 
     TimeLog::GetInstance()->addTimeLog("After prepare data", stopWatch.Span());
@@ -877,46 +888,75 @@ static inline cv::Mat calcOrder5BezierCoeff(const cv::Mat &matU) {
     const VectorOfGpuMat& vecGpuImages,
     cv::cuda::GpuMat& matNanMask,
     cv::cuda::Stream& stream) {
-        float fMinimumAlpitudeSquare = pstCmd->fMinAmplitude * pstCmd->fMinAmplitude;
+    float fMinimumAlpitudeSquare = pstCmd->fMinAmplitude * pstCmd->fMinAmplitude;
 
     Calc3DHeightVars& calc3DHeightVar = CudaAlgorithm::getCalc3DHeightVars(pstCmd->nDlpNo);
     DlpCalibResult& dlpCalibData = CudaAlgorithm::getDlpCalibData(pstCmd->nDlpNo);
 
     cv::cuda::GpuMat& matAlphaGpu = calc3DHeightVar.matAlpha;
     cv::cuda::GpuMat& matBetaGpu  = calc3DHeightVar.matBeta;
+    cv::cuda::GpuMat& matBetaGpu1  = calc3DHeightVar.matBeta1;
     cv::cuda::GpuMat& matGammaGpu = calc3DHeightVar.matGamma;
     cv::cuda::GpuMat& matGammaGpu1 = calc3DHeightVar.matGamma1;
-    cv::cuda::GpuMat& matAvgUnderTolIndexGpu = calc3DHeightVar.matAvgUnderTolIndex;
+    cv::cuda::GpuMat& matAvgUnderTolGpu = calc3DHeightVar.matAvgUnderTolGpu;
 
     cv::cuda::GpuMat& matBufferGpu = calc3DHeightVar.matBufferGpu;
     cv::cuda::GpuMat& matMaskGpu = calc3DHeightVar.matMaskGpu;
     cv::cuda::GpuMat& matPhaseGpuT = calc3DHeightVar.matBufferGpuT;
 
-    CudaAlgorithm::calcPhase(
-        vecGpuImages[0],
-        vecGpuImages[1],
-        vecGpuImages[2],
-        vecGpuImages[3],
-        matAlphaGpu, stream);
-    cv::cuda::subtract(matAlphaGpu, dlpCalibData.matAlphaBase, matAlphaGpu, cv::cuda::GpuMat(), -1, stream);
-
-    matAvgUnderTolIndexGpu.setTo(0, stream);
-    CudaAlgorithm::calcPhaseAndMask(
-        vecGpuImages[4],
-        vecGpuImages[5],
-        vecGpuImages[6],
-        vecGpuImages[7],
-        matBetaGpu, matAvgUnderTolIndexGpu, fMinimumAlpitudeSquare, stream);
-    cv::cuda::subtract(matBetaGpu, dlpCalibData.matBetaBase, matBetaGpu, cv::cuda::GpuMat(), -1, stream);
-
-    if (pstCmd->bUseThinnestPattern) {
+    if (12 == pstCmd->vecInputImgs.size()) {
         CudaAlgorithm::calcPhase(
-            vecGpuImages[8],
-            vecGpuImages[9],
-            vecGpuImages[10],
-            vecGpuImages[11],
-            matGammaGpu, stream);
-        cv::cuda::subtract(matGammaGpu, dlpCalibData.matGammaBase, matGammaGpu, cv::cuda::GpuMat(), -1, stream);
+            vecGpuImages[0],
+            vecGpuImages[1],
+            vecGpuImages[2],
+            vecGpuImages[3],
+            matAlphaGpu, stream);
+        cv::cuda::subtract(matAlphaGpu, dlpCalibData.matAlphaBase, matAlphaGpu, cv::cuda::GpuMat(), -1, stream);
+
+        matAvgUnderTolGpu.setTo(0, stream);
+        CudaAlgorithm::calcPhaseAndMask(
+            vecGpuImages[4],
+            vecGpuImages[5],
+            vecGpuImages[6],
+            vecGpuImages[7],
+            matBetaGpu, matAvgUnderTolGpu, fMinimumAlpitudeSquare, stream);
+        cv::cuda::subtract(matBetaGpu, dlpCalibData.matBetaBase, matBetaGpu, cv::cuda::GpuMat(), -1, stream);
+
+        if (pstCmd->bUseThinnestPattern) {
+            CudaAlgorithm::calcPhase(
+                vecGpuImages[8],
+                vecGpuImages[9],
+                vecGpuImages[10],
+                vecGpuImages[11],
+                matGammaGpu, stream);
+            cv::cuda::subtract(matGammaGpu, dlpCalibData.matGammaBase, matGammaGpu, cv::cuda::GpuMat(), -1, stream);
+        }
+    }
+    else {
+        CudaAlgorithm::calcPhase(
+            vecGpuImages[0],
+            vecGpuImages[1],
+            vecGpuImages[2],
+            matAlphaGpu, stream);
+        cv::cuda::subtract(matAlphaGpu, dlpCalibData.matAlphaBase, matAlphaGpu, cv::cuda::GpuMat(), -1, stream);
+
+        matAvgUnderTolGpu.setTo(0, stream);
+        CudaAlgorithm::calcPhaseAndMask(
+            vecGpuImages[3],
+            vecGpuImages[4],
+            vecGpuImages[5],
+            matBetaGpu, matAvgUnderTolGpu, fMinimumAlpitudeSquare, stream);
+        cv::cuda::subtract(matBetaGpu, dlpCalibData.matBetaBase, matBetaGpu, cv::cuda::GpuMat(), -1, stream);
+
+        if (pstCmd->bUseThinnestPattern) {
+            CudaAlgorithm::calcPhase(
+                vecGpuImages[6],
+                vecGpuImages[7],
+                vecGpuImages[8],
+                vecGpuImages[9],
+                matGammaGpu, stream);
+            cv::cuda::subtract(matGammaGpu, dlpCalibData.matGammaBase, matGammaGpu, cv::cuda::GpuMat(), -1, stream);
+        }
     }
 
     matBufferGpu.setTo(0, stream);
@@ -924,29 +964,45 @@ static inline cv::Mat calcOrder5BezierCoeff(const cv::Mat &matU) {
     CudaAlgorithm::phaseWrapBuffer(matAlphaGpu, matBufferGpu, calc3DHeightVar.d_tmpResult, pstCmd->fPhaseShift,
         calc3DHeightVar.eventDone, stream);
 
+    CudaAlgorithm::m_ptrGaussianFilterAlpha->apply(matAlphaGpu, matAlphaGpu, stream);
     //TimeLog::GetInstance()->addTimeLog("CudaAlgorithm::phaseWrapBuffer", stopWatch.Span());
 
     //matBuffer1 = matAlpha * pstCmd->matThickToThinK.at<DATA_TYPE>(0);
     cv::cuda::multiply(matAlphaGpu, pstCmd->matThickToThinK.at<DATA_TYPE>(0), matBufferGpu, 1, -1, stream);
 
     CudaAlgorithm::phaseWrapByRefer(matBetaGpu, matBufferGpu, stream);
-    //TimeLog::GetInstance()->addTimeLog("CudaAlgorithm::phaseWrapByRefer.", stopWatch.Span());
 
-    const int dt = 80; // Use one data in every dt pixels
-    float betaBase = CudaAlgorithm::intervalRangeAverage(matBetaGpu, dt, 
-        pstCmd->fBaseRangeMin, pstCmd->fBaseRangeMax,
-        calc3DHeightVar.d_tmpResult,
-        calc3DHeightVar.eventDone, stream);
+    // matBase reuse the memory of matAlpha, can save some GPU memory usage
+    cv::cuda::GpuMat& matBase = calc3DHeightVar.matAlpha;
+    CudaAlgorithm::getBaseFromGrid(matBetaGpu, matBase, 10, 10, calc3DHeightVar.d_p3,
+        reinterpret_cast<float *>(calc3DHeightVar.pBufferJumpStart),
+        reinterpret_cast<float *>(calc3DHeightVar.pBufferJumpEnd),
+        reinterpret_cast<float *>(calc3DHeightVar.pBufferSortedJumpSpanIdx),
+        stream);
 
-    const float SHIFT_TO_BASE = 0.2f;
+    const float SHIFT_TO_BASE = 0.25f;
 
     //cv::Mat matBeta3 = _phaseWarpNoAutoBase(matBeta, betaBase / 2 + SHIFT_TO_BASE); // 0.2 is also shift, means - 0.6~1.4
-    CudaAlgorithm::phaseWarpNoAutoBase(matBetaGpu, matBufferGpu, betaBase / 2 + SHIFT_TO_BASE, stream);
-    cv::cuda::compare(matBufferGpu, matBetaGpu, matMaskGpu, cv::CmpTypes::CMP_GT, stream);
-    matBufferGpu.copyTo(matBetaGpu, matMaskGpu, stream);
-    matBetaGpu.setTo(betaBase, matAvgUnderTolIndexGpu, stream);
+    cv::cuda::addWeighted(matBase, 0.5f, matBase, 0, SHIFT_TO_BASE, matBufferGpu, -1, stream);
+    
+    CudaAlgorithm::phaseWarpNoAutoBase(matBetaGpu, matBetaGpu1, matBufferGpu, stream);
 
-    if (pstCmd->nRemoveJumpSpan > 0) {
+    cv::cuda::compare(matBetaGpu1, matBetaGpu, matMaskGpu, cv::CmpTypes::CMP_GT, stream);
+    matBetaGpu1.copyTo(matBetaGpu, matMaskGpu, stream);
+
+    matBase.copyTo(matBetaGpu, matAvgUnderTolGpu, stream);
+    matBase.copyTo(matBetaGpu1, matAvgUnderTolGpu, stream);
+
+    if (pstCmd->nCompareRemoveJumpSpan > 0)
+        CudaAlgorithm::phaseCorrectionCmp(matBetaGpu, matBetaGpu1,
+            matBufferGpu, matPhaseGpuT, calc3DHeightVar.matBufferGpuT_1,
+            calc3DHeightVar.matDiffResult, calc3DHeightVar.matDiffResultT,
+            calc3DHeightVar.matDiffResult_1, calc3DHeightVar.matDiffResultT_1,
+            calc3DHeightVar.matMaskGpu, calc3DHeightVar.matMaskGpuT, calc3DHeightVar.matMaskGpu_1,
+            calc3DHeightVar.pBufferJumpStart, calc3DHeightVar.pBufferJumpEnd, //Reuease the phase jump buffer
+            pstCmd->nCompareRemoveJumpSpan, stream);
+
+    if (pstCmd->nRemoveJumpSpan > 0)
         CudaAlgorithm::phaseCorrection(matBetaGpu, matPhaseGpuT,
             calc3DHeightVar.matDiffResult, calc3DHeightVar.matDiffResultT,
             calc3DHeightVar.matBufferSign, calc3DHeightVar.matBufferAmpl,
@@ -955,37 +1011,40 @@ static inline cv::Mat calcOrder5BezierCoeff(const cv::Mat &matU) {
             calc3DHeightVar.pBufferJumpEnd,
             calc3DHeightVar.pBufferSortedJumpSpanIdx,
             pstCmd->nRemoveJumpSpan, pstCmd->nRemoveJumpSpan, stream);
-    }
 
     if (pstCmd->bUseThinnestPattern) {
         auto k1 = pstCmd->matThickToThinK.at<DATA_TYPE>(0);
         auto k2 = pstCmd->matThickToThinnestK.at<DATA_TYPE>(0);
 
-        float gammaBase = betaBase * k2 / k1;
+        //float gammaBase = betaBase * k2 / k1;
+        cv::cuda::addWeighted(matBase, k2 / k1 / 2.f, matBase, 0, 0.25f, matBufferGpu, -1, stream);
+
         //cv::Mat matGamma1 = _phaseWarpNoAutoBase(matGamma, gammaBase / 2 + SHIFT_TO_BASE);
-        CudaAlgorithm::phaseWarpNoAutoBase(matGammaGpu, matGammaGpu1, gammaBase / 2 + SHIFT_TO_BASE, stream);
+        CudaAlgorithm::phaseWarpNoAutoBase(matGammaGpu, matGammaGpu1, matBufferGpu, stream);
         //matBuffer1 = matBeta * k2 / k1;
         cv::cuda::multiply(matBetaGpu, k2 / k1, matBufferGpu, 1, -1, stream);
 
         //_phaseWrapByRefer(matGamma, matBuffer1);
         CudaAlgorithm::phaseWrapByRefer(matGammaGpu, matBufferGpu, stream);
 
-        matGammaGpu.setTo(gammaBase, matAvgUnderTolIndexGpu, stream);
-        matGammaGpu1.setTo(gammaBase, matAvgUnderTolIndexGpu, stream);
+        cv::cuda::multiply(matBase, k2 / k1, matBufferGpu, 1, -1, stream);
+        matBufferGpu.copyTo(matGammaGpu, matAvgUnderTolGpu, stream);
+        matBufferGpu.copyTo(matGammaGpu1, matAvgUnderTolGpu, stream);
 
         //TimeLog::GetInstance()->addTimeLog("Parepare data for phaseCorrectionCmp for gamma.", stopWatch.Span());
 
-        CudaAlgorithm::phaseCorrectionCmp(matGammaGpu, matGammaGpu1,
-            matBufferGpu, matPhaseGpuT, calc3DHeightVar.matBufferGpuT_1,
-            calc3DHeightVar.matDiffResult, calc3DHeightVar.matDiffResultT,
-            calc3DHeightVar.matDiffResult_1, calc3DHeightVar.matDiffResultT_1,
-            calc3DHeightVar.matMaskGpu, calc3DHeightVar.matMaskGpuT, calc3DHeightVar.matMaskGpu_1,
-            calc3DHeightVar.pBufferJumpStart, calc3DHeightVar.pBufferJumpEnd, //Reuease the phase jump buffer
-            pstCmd->nCompareRemoveJumpSpan, stream);
+        if (pstCmd->nCompareRemoveJumpSpan > 0)
+            CudaAlgorithm::phaseCorrectionCmp(matGammaGpu, matGammaGpu1,
+                matBufferGpu, matPhaseGpuT, calc3DHeightVar.matBufferGpuT_1,
+                calc3DHeightVar.matDiffResult, calc3DHeightVar.matDiffResultT,
+                calc3DHeightVar.matDiffResult_1, calc3DHeightVar.matDiffResultT_1,
+                calc3DHeightVar.matMaskGpu, calc3DHeightVar.matMaskGpuT, calc3DHeightVar.matMaskGpu_1,
+                calc3DHeightVar.pBufferJumpStart, calc3DHeightVar.pBufferJumpEnd, //Reuease the phase jump buffer
+                pstCmd->nCompareRemoveJumpSpan, stream);
 
         //TimeLog::GetInstance()->addTimeLog("phaseCorrectionCmp for gamma.", stopWatch.Span());
 
-        if (pstCmd->nRemoveJumpSpan > 0) {
+        if (pstCmd->nRemoveJumpSpan > 0)
             CudaAlgorithm::phaseCorrection(matGammaGpu, matPhaseGpuT,
                 calc3DHeightVar.matDiffResult, calc3DHeightVar.matDiffResultT,
                 calc3DHeightVar.matBufferSign, calc3DHeightVar.matBufferAmpl,
@@ -994,16 +1053,16 @@ static inline cv::Mat calcOrder5BezierCoeff(const cv::Mat &matU) {
                 calc3DHeightVar.pBufferJumpEnd,
                 calc3DHeightVar.pBufferSortedJumpSpanIdx,
                 pstCmd->nRemoveJumpSpan, pstCmd->nRemoveJumpSpan, stream);
-            //TimeLog::GetInstance()->addTimeLog("phaseCorrection for gamma.", stopWatch.Span());
-        }
 
         cv::cuda::multiply(matGammaGpu, k1 / k2, matBufferGpu, 1, -1, stream);
     }
     else
         matBufferGpu = matBetaGpu;
 
-    cv::cuda::compare(matBufferGpu, betaBase - 0.1, matMaskGpu, cv::CmpTypes::CMP_LT, stream);
-    matBufferGpu.setTo(betaBase, matMaskGpu, stream);
+    // matAlphaGpu is just a reused buffer here
+    cv::cuda::subtract(matBase, 0.05f, matAlphaGpu, cv::cuda::GpuMat(), -1, stream);
+    cv::cuda::compare(matBufferGpu, matAlphaGpu, matMaskGpu, cv::CmpTypes::CMP_LT, stream);
+    matAlphaGpu.copyTo(matBufferGpu, matMaskGpu, stream);
 
     CudaAlgorithm::medianFilter(matBufferGpu, matAlphaGpu, 5, stream);
 
@@ -1018,11 +1077,11 @@ static inline cv::Mat calcOrder5BezierCoeff(const cv::Mat &matU) {
         CudaAlgorithm::calculateSurfaceConvert3D(matBufferGpu, matPhaseGpuT, matBufferGpu, vecParamMinMaxXY, 4, pstCmd->nDlpNo, stream);
     }
 
-    matBufferGpu.setTo(NAN, matAvgUnderTolIndexGpu, stream);
+    matBufferGpu.setTo(NAN, matAvgUnderTolGpu, stream);
 
     // Compensate dlp height offset
     cv::cuda::add(matBufferGpu, pstCmd->fHeightOffset, matBufferGpu, cv::cuda::GpuMat(), -1, stream);
-    matNanMask = matAvgUnderTolIndexGpu;
+    matNanMask = matAvgUnderTolGpu;
     return matBufferGpu;
 }
 
@@ -1095,7 +1154,6 @@ static inline cv::Mat calcOrder5BezierCoeff(const cv::Mat &matU) {
     float                    fHeightDiffThreshold2,
     cv::cuda::Stream&        stream1,
     cv::cuda::Stream&        stream2) {
-
     if (vecGpuMatHeight.size() != NUM_OF_DLP || vecGpuMatNanMask.size() != NUM_OF_DLP || vecProjDir.size() != NUM_OF_DLP || vecProjDir[0] == vecProjDir[1]) {
         throw std::exception("Invalid parameters input to _merge4DlpHeightCore");
     }
@@ -1113,8 +1171,11 @@ static inline cv::Mat calcOrder5BezierCoeff(const cv::Mat &matU) {
         vecProjDir[0],
         matResultNan1,
         stream1);
-
     matMerge1.setTo(NAN, matResultNan1, stream1);
+
+    auto& calc3DHeightVar0 = CudaAlgorithm::getCalc3DHeightVars(0);
+    cv::cuda::GpuMat& matOverlap1 = calc3DHeightVar0.matAvgUnderTolGpu;
+    CudaAlgorithm::getOverlapMask(vecGpuMatHeight[0], vecGpuMatHeight[2], calc3DHeightVar0.matAlpha, fHeightDiffThreshold1, matOverlap1, stream1);
 
     //{
     //    cv::Mat matTmp1, matNanMaskCpu1;
@@ -1144,6 +1205,10 @@ static inline cv::Mat calcOrder5BezierCoeff(const cv::Mat &matU) {
 
     matMerge2.setTo(NAN, matResultNan2, stream2);
 
+    auto& calc3DHeightVar1 = CudaAlgorithm::getCalc3DHeightVars(1);
+    cv::cuda::GpuMat& matOverlap2 = calc3DHeightVar1.matAvgUnderTolGpu;
+    CudaAlgorithm::getOverlapMask(vecGpuMatHeight[1], vecGpuMatHeight[3], calc3DHeightVar1.matAlpha, fHeightDiffThreshold1, matOverlap2, stream2);
+
     //{
     //    cv::Mat matTmp2, matNanMaskCpu2;
     //    matMerge2.download(matTmp2);
@@ -1159,7 +1224,82 @@ static inline cv::Mat calcOrder5BezierCoeff(const cv::Mat &matU) {
 
     cudaDeviceSynchronize();
 
-    auto& calc3DHeightVar0 = CudaAlgorithm::getCalc3DHeightVars(0);
+    //%%%%%%%%%%%% sequence is important, 1st, lowest
+    //idx1 = find((H22(idxovlp1) - H11(idxovlp1)) > Thresh); H22(idxovlp1(idx1)) = H11(idxovlp1(idx1));
+    //idx2 = find((H11(idxovlp2) - H22(idxovlp2)) > Thresh); H11(idxovlp2(idx2)) = H22(idxovlp2(idx2));
+    cv::cuda::subtract(matMerge2, matMerge1, calc3DHeightVar0.matBufferGpu, cv::cuda::GpuMat(), -1, stream1);
+    cv::cuda::compare(calc3DHeightVar0.matBufferGpu, fHeightDiffThreshold2, calc3DHeightVar0.matMaskGpu_2, cv::CmpTypes::CMP_GT, stream1);
+    //std::cout << "1 lower than 2 count " << cv::cuda::countNonZero(calc3DHeightVar0.matMaskGpu_2) << std::endl;
+    cv::cuda::bitwise_and(calc3DHeightVar0.matMaskGpu_2, matOverlap1, calc3DHeightVar0.matMaskGpu_2, cv::cuda::GpuMat(), stream1);
+    matMerge1.copyTo(matMerge2, calc3DHeightVar0.matMaskGpu_2, stream1);
+
+    //{
+    //    cv::Mat matMask;
+    //    calc3DHeightVar0.matMaskGpu_2.download(matMask);
+    //    cv::imwrite(INTER_RESULT_FOLDER + "Merge_lowest_1_to_2_mask.png", matMask);
+    //    std::cout << "Copy lowest 1 to 2 count " << cv::cuda::countNonZero(calc3DHeightVar0.matMaskGpu_2) << std::endl;
+    //}
+
+    cv::cuda::subtract(matMerge1, matMerge2, calc3DHeightVar0.matBufferGpu, cv::cuda::GpuMat(), -1, stream1);
+    cv::cuda::compare(calc3DHeightVar0.matBufferGpu, fHeightDiffThreshold2, calc3DHeightVar0.matMaskGpu_2, cv::CmpTypes::CMP_GT, stream1);
+    //std::cout << "2 lower than 1 count " << cv::cuda::countNonZero(calc3DHeightVar0.matMaskGpu_2) << std::endl;
+    cv::cuda::bitwise_and(calc3DHeightVar0.matMaskGpu_2, matOverlap2, calc3DHeightVar0.matMaskGpu_2, cv::cuda::GpuMat(), stream1);
+    matMerge2.copyTo(matMerge1, calc3DHeightVar0.matMaskGpu_2, stream1);
+
+    //{
+    //    cv::Mat matMask;
+    //    calc3DHeightVar0.matMaskGpu_2.download(matMask);
+    //    cv::imwrite(INTER_RESULT_FOLDER + "Merge_lowest_2_to_1_mask.png", matMask);
+    //    std::cout << "Copy lowest 2 to 1 count " << cv::cuda::countNonZero(calc3DHeightVar0.matMaskGpu_2) << std::endl;
+    //}
+
+    //%%%%% 2nd, highest
+    //idx1 = find((H22(idxovlp1) - H11(idxovlp1)) < -Thresh); H22(idxovlp1(idx1)) = H11(idxovlp1(idx1));
+    //idx2 = find((H11(idxovlp2) - H22(idxovlp2)) < -Thresh); H11(idxovlp2(idx2)) = H22(idxovlp2(idx2));
+    cv::cuda::subtract(matMerge2, matMerge1, calc3DHeightVar1.matBufferGpu, cv::cuda::GpuMat(), -1, stream1);
+    cv::cuda::compare(calc3DHeightVar1.matBufferGpu, -fHeightDiffThreshold2, calc3DHeightVar1.matMaskGpu_2, cv::CmpTypes::CMP_LT, stream1);
+    cv::cuda::bitwise_and(calc3DHeightVar1.matMaskGpu_2, matOverlap1, calc3DHeightVar1.matMaskGpu_2, cv::cuda::GpuMat(), stream1);
+    matMerge1.copyTo(matMerge2, calc3DHeightVar1.matMaskGpu_2, stream1);
+
+    //{
+    //    cv::Mat matMask;
+    //    calc3DHeightVar0.matMaskGpu_2.download(matMask);
+    //    cv::imwrite(INTER_RESULT_FOLDER + "Merge_highest_1_to_2_mask.png", matMask);
+    //    std::cout << "Copy highest 1 to 2 count " << cv::cuda::countNonZero(calc3DHeightVar0.matMaskGpu_2) << std::endl;
+    //}
+
+    cv::cuda::subtract(matMerge1, matMerge2, calc3DHeightVar1.matBufferGpu, cv::cuda::GpuMat(), -1, stream1);
+    cv::cuda::compare(calc3DHeightVar1.matBufferGpu, -fHeightDiffThreshold2, calc3DHeightVar1.matMaskGpu_2, cv::CmpTypes::CMP_LT, stream1);
+    cv::cuda::bitwise_and(calc3DHeightVar1.matMaskGpu_2, matOverlap2, calc3DHeightVar1.matMaskGpu_2, cv::cuda::GpuMat(), stream1);
+    matMerge2.copyTo(matMerge1, calc3DHeightVar1.matMaskGpu_2, stream1);
+
+    //{
+    //    cv::Mat matMask;
+    //    calc3DHeightVar0.matMaskGpu_2.download(matMask);
+    //    cv::imwrite(INTER_RESULT_FOLDER + "Merge_highest_2_to_1_mask.png", matMask);
+    //    std::cout << "Copy highest 2 to 1 count " << cv::cuda::countNonZero(calc3DHeightVar0.matMaskGpu_2) << std::endl;
+    //}
+
+    //cudaDeviceSynchronize();
+
+    //{
+    //    cv::Mat matTmp1, matNanMaskCpu1;
+    //    matMerge1.download(matTmp1);
+    //    CalcUtils::saveMatToYml(matTmp1, INTER_RESULT_FOLDER + "Gpu_MergeResult_After_Overlap_1.yml", "result");
+    //    PR_HEIGHT_TO_GRAY_CMD stCmd;
+    //    PR_HEIGHT_TO_GRAY_RPY stRpy;
+    //    stCmd.matHeight = matTmp1;
+    //    VisionAlgorithm::heightToGray(&stCmd, &stRpy);
+    //    cv::imwrite(INTER_RESULT_FOLDER + "Gpu_MergeResult_After_Overlap_1_Gray.png", stRpy.matGray);
+
+    //    cv::Mat matTmp2, matNanMaskCpu2;
+    //    matMerge2.download(matTmp2);
+    //    CalcUtils::saveMatToYml(matTmp2, INTER_RESULT_FOLDER + "Gpu_MergeResult_After_Overlap_2.yml", "result");
+    //    stCmd.matHeight = matTmp2;
+    //    VisionAlgorithm::heightToGray(&stCmd, &stRpy);
+    //    cv::imwrite(INTER_RESULT_FOLDER + "Gpu_MergeResult_After_Overlap_2_Gray.png", stRpy.matGray);
+    //}
+
     cv::cuda::GpuMat& matBufferGpu1 = calc3DHeightVar0.matAlpha;
     cv::cuda::GpuMat& matBufferGpu2 = calc3DHeightVar0.matBeta;
 
@@ -1227,8 +1367,11 @@ static inline cv::Mat calcOrder5BezierCoeff(const cv::Mat &matU) {
     //}
 
     cv::cuda::addWeighted(matMerge3, 0.5f, matMerge4, 0.5f, 0, matMerge1);
-
     return matMerge1;
+
+    //cv::cuda::compare(matMerge3, matMerge4, calc3DHeightVar0.matMaskGpu, cv::CmpTypes::CMP_LT);
+    //matMerge3.copyTo(matMerge4);
+    //return matMerge4;
 }
 
 /*static*/ void Unwrap::calcMerge4DlpHeight(const PR_CALC_MERGE_4_DLP_HEIGHT_CMD *const pstCmd, PR_CALC_MERGE_4_DLP_HEIGHT_RPY *const pstRpy) {
@@ -1245,10 +1388,19 @@ static inline cv::Mat calcOrder5BezierCoeff(const cv::Mat &matU) {
         }
 
         if (stCmd.bReverseSeq) {
-            std::swap(vecConvertedImgs[dlp][1], vecConvertedImgs[dlp][3]);
-            std::swap(vecConvertedImgs[dlp][5], vecConvertedImgs[dlp][7]);
-            if (stCmd.bUseThinnestPattern)
-                std::swap(vecConvertedImgs[dlp][9], vecConvertedImgs[dlp][11]);
+            if (12 == vecConvertedImgs[dlp].size()) {
+                std::swap(vecConvertedImgs[dlp][1], vecConvertedImgs[dlp][3]);
+                std::swap(vecConvertedImgs[dlp][5], vecConvertedImgs[dlp][7]);
+                if (stCmd.bUseThinnestPattern)
+                    std::swap(vecConvertedImgs[dlp][9], vecConvertedImgs[dlp][11]);
+            }else if(10 == vecConvertedImgs[dlp].size()){
+                std::swap(vecConvertedImgs[dlp][1], vecConvertedImgs[dlp][2]);
+                std::swap(vecConvertedImgs[dlp][4], vecConvertedImgs[dlp][5]);
+                if (stCmd.bUseThinnestPattern)
+                    std::swap(vecConvertedImgs[dlp][7], vecConvertedImgs[dlp][9]);
+            }else {
+                throw std::exception("Input image number for dlp should be 10 or 12");
+            }
         }
     }
 
@@ -1271,15 +1423,14 @@ static inline cv::Mat calcOrder5BezierCoeff(const cv::Mat &matU) {
             CudaAlgorithm::m_arrVecGpuMat[dlp],
             vecGpuNanMasks[dlp],
             arrStreams[dlp]);
-
-        //vecGpuHeights[dlp].download(vecHeights[dlp], arrStreams[dlp]);
-        //vecGpuNanMasks[dlp].download(vecNanMasks[dlp], arrStreams[dlp]);
     }
 
     cudaDeviceSynchronize();
     TimeLog::GetInstance()->addTimeLog("After calculate 4 DLP height", stopWatch.Span());
 
     //for (int dlp = 0; dlp < NUM_OF_DLP; ++dlp) {
+    //    vecGpuHeights[dlp].download(vecHeights[dlp], arrStreams[dlp]);
+    //    vecGpuNanMasks[dlp].download(vecNanMasks[dlp], arrStreams[dlp]);
     //    CalcUtils::saveMatToCsv(vecHeights[dlp], INTER_RESULT_FOLDER + "Dlp_Height_" + std::to_string(dlp + 1) + ".csv");
 
     //    PR_HEIGHT_TO_GRAY_CMD stCmd;
@@ -1289,6 +1440,23 @@ static inline cv::Mat calcOrder5BezierCoeff(const cv::Mat &matU) {
     //    cv::imwrite(INTER_RESULT_FOLDER + "Dlp_" + std::to_string(dlp + 1) + "_HeightGray.png", stRpy.matGray);
     //    cv::imwrite(INTER_RESULT_FOLDER + "Dlp_" + std::to_string(dlp + 1) + "_NanMask.png", vecNanMasks[dlp]);
     //}
+
+    //cv::Mat matNanTotal = vecNanMasks[0] | vecNanMasks[1] | vecNanMasks[2] | vecNanMasks[3];
+    //cv::Mat matNonNan = 255 - matNanTotal;
+
+    //auto meanHeight1 = cv::mean(vecHeights[0], matNonNan)[0];
+    //auto meanHeight2 = cv::mean(vecHeights[1], matNonNan)[0];
+    //auto meanHeight3 = cv::mean(vecHeights[2], matNonNan)[0];
+    //auto meanHeight4 = cv::mean(vecHeights[3], matNonNan)[0];
+    //std::cout << std::fixed << std::setprecision(3);
+    //std::cout << "Dlp1 height mean " << meanHeight1 << std::endl;
+    //std::cout << "Dlp2 height mean " << meanHeight2 << std::endl;
+    //std::cout << "Dlp3 height mean " << meanHeight3 << std::endl;
+    //std::cout << "Dlp4 height mean " << meanHeight4 << std::endl;
+    //std::cout << "Dlp1 height offset " << ToFloat(meanHeight1 - meanHeight4) << std::endl;
+    //std::cout << "Dlp2 height offset " << ToFloat(meanHeight2 - meanHeight4) << std::endl;
+    //std::cout << "Dlp3 height offset " << ToFloat(meanHeight3 - meanHeight4) << std::endl;
+    //std::cout << "Dlp4 height offset " << ToFloat(meanHeight4 - meanHeight4) << std::endl;
 
     //pstRpy->matHeight = _merge4DlpHeightCore(vecHeights, vecNanMasks, vecProjDir, pstCmd->fHeightDiffThreshold);
     auto matResultGpu = _merge4DlpHeightCore(vecGpuHeights, vecGpuNanMasks, vecProjDir,
