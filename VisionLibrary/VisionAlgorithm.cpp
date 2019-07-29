@@ -4363,6 +4363,14 @@ VisionStatus VisionAlgorithm::_findLineByCaliper(const cv::Mat &matInputImg, con
     pstRpy->enStatus = _checkInputROI(pstCmd->rectLeadWindow, pstCmd->matInputImg, AT);
     if (VisionStatus::OK != pstRpy->enStatus) return pstRpy->enStatus;
 
+    if (pstCmd->vecSrchLeadDirections.size() > ToInt32(PR_DIRECTION::END)) {
+        std::stringstream ss;
+        ss << "The input number of search direction " << pstCmd->vecSrchLeadDirections.size() << " over limit 4";
+        WriteLog(ss.str());
+        pstRpy->enStatus = VisionStatus::INVALID_PARAM;
+        return pstRpy->enStatus;
+    }
+
     if (! CalcUtils::isRectInRect(pstCmd->rectLeadWindow, pstCmd->rectSrchWindow)) {
         char chArrMsg[1000];
         _snprintf(chArrMsg, sizeof(chArrMsg), "The lead window (%d, %d, %d, %d) should inside search window (%d, %d, %d, %d).",
@@ -4435,6 +4443,9 @@ VisionStatus VisionAlgorithm::_findLineByCaliper(const cv::Mat &matInputImg, con
         matLead = matLeadTmp;
         matPad = matPadTmp;
     }
+
+    cv::medianBlur(matLead, matLead, 5);
+    cv::medianBlur(matPad, matPad, 5);
 
     if (ConfigInstance->getDebugMode() == PR_DEBUG_MODE::SHOW_IMAGE) {
         showImage("Pad template", matPad);
@@ -4528,7 +4539,7 @@ VisionStatus VisionAlgorithm::_findLineByCaliper(const cv::Mat &matInputImg, con
         matSubRegion,
         PR_OBJECT_ATTRIBUTE::BRIGHT,
         cv::MorphShapes::MORPH_ELLIPSE,
-        cv::Size(10, 10),
+        cv::Size(8, 8),
         2);
     if (VisionStatus::OK != pstRpy->enStatus) {
         WriteLog("Failed to fill hole in _autoLocateLeadOneSide");
@@ -4609,6 +4620,14 @@ VisionStatus VisionAlgorithm::_findLineByCaliper(const cv::Mat &matInputImg, con
         else
             rectLeadSrchWindow = CalcUtils::resizeRect(rectLeadSrchWindow, cv::Size(rectLeadSrchWindow.width, rectLeadSrchWindow.height + 10));
         CalcUtils::adjustRectROI(rectLeadSrchWindow, matSubRegion);
+
+        {
+            cv::Rect rectDrawLeadSrchWindow(rectLeadSrchWindow);
+            rectDrawLeadSrchWindow.x += rectSubRegion.x + pstCmd->rectSrchWindow.x;
+            rectDrawLeadSrchWindow.y += rectSubRegion.y + pstCmd->rectSrchWindow.y;
+            cv::rectangle(pstRpy->matResultImg, rectDrawLeadSrchWindow, YELLOW_SCALAR, 1);
+        }
+
         cv::Mat matLeadSrchROI(matSubRegion, rectLeadSrchWindow);
         cv::Point2f ptPadPosition, ptLeadPosition;
         float fPadRotation, fLeadRotation, fPadScore, fLeadScore;
@@ -4624,6 +4643,9 @@ VisionStatus VisionAlgorithm::_findLineByCaliper(const cv::Mat &matInputImg, con
 
             MatchTmpl::matchTemplate(matLeadSrchROI, matPad, false, PR_OBJECT_MOTION::TRANSLATION, ptPadPosition, fPadRotation, fPadScore);
             if (fPadScore < 0.6f) {
+                if (ConfigInstance->getDebugMode() == PR_DEBUG_MODE::SHOW_IMAGE) {
+                    showImage("Srch Pad Fail", matLeadSrchROI);
+                }
                 char msg[1000];
                 _snprintf(msg, sizeof(msg), "Auto locate lead at direction %d failed to search pad at %d lead.", ToInt32(enDir), i);
                 WriteLog(msg);
@@ -4650,6 +4672,9 @@ VisionStatus VisionAlgorithm::_findLineByCaliper(const cv::Mat &matInputImg, con
 
         MatchTmpl::matchTemplate(matLeadSrchROI, matLead, false, PR_OBJECT_MOTION::TRANSLATION, ptLeadPosition, fLeadRotation, fLeadScore);
         if (fPadScore < 0.6f) {
+            if (ConfigInstance->getDebugMode() == PR_DEBUG_MODE::SHOW_IMAGE) {
+                showImage("Srch Lead Fail", matLeadSrchROI);
+            }
             char msg[1000];
             _snprintf(msg, sizeof(msg), "Auto locate lead at direction %d failed to search lead at lead index %d.", ToInt32(enDir), i);
             WriteLog(msg);
@@ -4834,7 +4859,8 @@ VisionStatus VisionAlgorithm::_findLineByCaliper(const cv::Mat &matInputImg, con
 /*static*/ void VisionAlgorithm::_inspBridgeItem(const PR_INSP_BRIDGE_CMD * const pstCmd, PR_INSP_BRIDGE_RPY * const pstRpy) {
     cv::Mat matROI, matFilter, matMask, matThreshold;
     cv::Point ptRoiTL;
-    cv::Rect2f rectOuterWindowNew(pstCmd->rectROI.x - pstCmd->rectOuterSrchWindow.x, pstCmd->rectROI.y - pstCmd->rectOuterSrchWindow.y, pstCmd->rectROI.width, pstCmd->rectROI.height);
+    cv::Rect2f rectOuterWindowNew(ToFloat(pstCmd->rectROI.x - pstCmd->rectOuterSrchWindow.x),
+        ToFloat(pstCmd->rectROI.y - pstCmd->rectOuterSrchWindow.y), ToFloat(pstCmd->rectROI.width), ToFloat(pstCmd->rectROI.height));
     if (PR_INSP_BRIDGE_MODE::INNER == pstCmd->enInspMode) {
         matROI = cv::Mat(pstCmd->matInputImg, pstCmd->rectROI).clone();
         ptRoiTL = pstCmd->rectROI.tl();
@@ -4885,7 +4911,7 @@ VisionStatus VisionAlgorithm::_findLineByCaliper(const cv::Mat &matInputImg, con
         if (area < 50.f)
             continue;
 
-        cv::Rect2f rect = cv::boundingRect(contour);
+        cv::Rect rect = cv::boundingRect(contour);
         cv::Point2f ptCenter = CalcUtils::getContourCtr(contour);
 
         if (PR_INSP_BRIDGE_MODE::INNER == pstCmd->enInspMode) {
@@ -4895,7 +4921,7 @@ VisionStatus VisionAlgorithm::_findLineByCaliper(const cv::Mat &matInputImg, con
             }
         }
         else {
-            cv::Point ptWindowCtr(rectOuterWindowNew.x + rectOuterWindowNew.width / 2, rectOuterWindowNew.y + rectOuterWindowNew.height / 2);
+            cv::Point2f ptWindowCtr(rectOuterWindowNew.x + rectOuterWindowNew.width / 2, rectOuterWindowNew.y + rectOuterWindowNew.height / 2);
             for (const auto enDirection : pstCmd->vecOuterInspDirection)
             if (PR_DIRECTION::UP == enDirection) {
                 int nTolerance = pstCmd->rectROI.y - pstCmd->rectOuterSrchWindow.y - MARGIN;

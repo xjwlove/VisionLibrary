@@ -93,14 +93,34 @@ void TestAutoLocateLead()
     stCmd.rectChipBody =   cv::Rect(cv::Point(860, 630), cv::Point(1491, 1261));
     stCmd.rectPadWindow = cv::Rect(cv::Point(898, 446), cv::Point(946, 544));
     stCmd.rectLeadWindow = cv::Rect(cv::Point(900, 544), cv::Point(944, 630));
+    stCmd.vecSrchLeadDirections.clear();
     stCmd.vecSrchLeadDirections.push_back(PR_DIRECTION::RIGHT);
     stCmd.vecSrchLeadDirections.push_back(PR_DIRECTION::UP);
     stCmd.vecSrchLeadDirections.push_back(PR_DIRECTION::DOWN);
     stCmd.vecSrchLeadDirections.push_back(PR_DIRECTION::LEFT);
     PR_AutoLocateLead(&stCmd, &stRpy);
     PrintRpy(stRpy);
-    if (VisionStatus::OK == stRpy.enStatus)
-        cv::imwrite("./data/TestAutoLocateLead_Result.png", stRpy.matResultImg);
+    if (!stRpy.matResultImg.empty())
+        cv::imwrite("./data/TestAutoLocateLead_Result_5.png", stRpy.matResultImg);
+
+    std::cout << std::endl << "---------------------------------------------";
+    std::cout << std::endl << "AUTO LOCATE LEAD REGRESSION TEST #6 STARTING";
+    std::cout << std::endl << "---------------------------------------------";
+    std::cout << std::endl;
+    
+    stCmd.matInputImg = cv::imread("./data/TestAutoLocateLead_6.png", cv::IMREAD_COLOR);
+    stCmd.enMethod = PR_AUTO_LOCATE_LEAD_METHOD::TEMPLATE_MATCH;
+    stCmd.rectSrchWindow = cv::Rect(cv::Point(0, 0), cv::Point(453, 218));
+    stCmd.rectChipBody =   cv::Rect(cv::Point(131, 15), cv::Point(322, 206));
+    stCmd.rectPadWindow = cv::Rect(cv::Point(9, 28), cv::Point(74, 58));
+    stCmd.rectLeadWindow = cv::Rect(cv::Point(72, 30), cv::Point(167, 56));
+    stCmd.vecSrchLeadDirections.clear();
+    stCmd.vecSrchLeadDirections.push_back(PR_DIRECTION::RIGHT);
+    stCmd.vecSrchLeadDirections.push_back(PR_DIRECTION::LEFT);
+    PR_AutoLocateLead(&stCmd, &stRpy);
+    PrintRpy(stRpy);
+    if (!stRpy.matResultImg.empty())
+        cv::imwrite("./data/TestAutoLocateLead_Result_6.png", stRpy.matResultImg);
 }
 
 }

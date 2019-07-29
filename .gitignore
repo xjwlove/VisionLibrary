@@ -57,3 +57,5 @@ result.png
 TestVisionLibrary/*.txt
 RegressionTest/Data/TestInsp3DSolder_3/result_swap_roi.png
 RegressionTest/Data/TestMerge4DlpHeight/PR_Merge3DHeight_Result.png
+RegressionTest/Data/TestAutoLocateLead_Result_5.png
+RegressionTest/Data/TestAutoLocateLead_Result_6.png
