@@ -1342,6 +1342,11 @@ INSPECT BRIDGE REGRESSION TEST #7 STARTING
 Inspect bridge status 0
 
 ---------------------------------------------
+INSPECT BRIDGE REGRESSION TEST #8 STARTING
+---------------------------------------------
+Inspect bridge status 0
+
+---------------------------------------------
 INSP CHIP HEAD REGRESSION TEST #1 STARTING
 ---------------------------------------------
 Inspect chip status 0
