@@ -50,7 +50,7 @@ public:
     }
 
     template<typename T>
-    static inline cv::Rect_<T> resizeRect(const cv::Rect_<T> &rectInput, cv::Size_<T> szNew) {
+    static inline cv::Rect_<T> resizeRect(const cv::Rect_<T> &rectInput, const cv::Size_<T>& szNew) {
         return cv::Rect_<T>(rectInput.x + rectInput.width / 2 - szNew.width / 2, rectInput.y + rectInput.height / 2 - szNew.height / 2,
             szNew.width, szNew.height);
     }

@@ -93,6 +93,7 @@ enum class PR_DIRECTION {
     DOWN,
     LEFT,
     RIGHT,
+    END,
 };
 
 enum class PR_OBJECT_ATTRIBUTE {
