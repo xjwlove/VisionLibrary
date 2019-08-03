@@ -1065,7 +1065,9 @@ VisionStatus VisionAlgorithm::inspDevice(PR_INSP_DEVICE_CMD *pstInspDeviceCmd, P
     }
 
     if (ptrRecord->getTmpl().rows > pstCmd->rectSrchWindow.height || ptrRecord->getTmpl().cols > pstCmd->rectSrchWindow.width) {
-        WriteLog("The template is bigger than search window.");
+        std::stringstream ss;
+        ss << "The template size " << ptrRecord->getTmpl().size() << " is bigger than search window size " << pstCmd->rectSrchWindow.size();
+        WriteLog(ss.str());
         pstRpy->enStatus = VisionStatus::INVALID_PARAM;
         return pstRpy->enStatus;
     }
@@ -4406,21 +4408,26 @@ VisionStatus VisionAlgorithm::_findLineByCaliper(const cv::Mat &matInputImg, con
     }
 
     PR_DIRECTION enLeadDir = PR_DIRECTION::UP;
+    int leadGoIntoChipPos = 0;
     // Auto determine the direction of the input template lead.
     if (pstCmd->rectPadWindow.area() > 0) {
         cv::Point ptLeadCtr = cv::Point(pstCmd->rectLeadWindow.x + pstCmd->rectLeadWindow.width / 2, pstCmd->rectLeadWindow.y + pstCmd->rectLeadWindow.height / 2);
         cv::Point ptPadCtr  = cv::Point(pstCmd->rectPadWindow.x  + pstCmd->rectPadWindow.width  / 2, pstCmd->rectPadWindow.y  + pstCmd->rectPadWindow.height  / 2);
         cv::Mat matLeadTmp, matPadTmp;
         // Lead is vertical
-        if (abs(ptPadCtr.y - ptLeadCtr.y) >abs(ptPadCtr.x - ptLeadCtr.x)) {
+        if (abs(ptPadCtr.y - ptLeadCtr.y) > abs(ptPadCtr.x - ptLeadCtr.x)) {
             if (ptPadCtr.y < ptLeadCtr.y) {
                 enLeadDir = PR_DIRECTION::UP;
                 matLeadTmp = matLead;
                 matPadTmp = matPad;
+
+                leadGoIntoChipPos = pstCmd->rectLeadWindow.y + pstCmd->rectLeadWindow.height - pstCmd->rectChipBody.y;
             }else {
                 enLeadDir = PR_DIRECTION::DOWN;
                 cv::flip(matPad, matPadTmp, -1);    //flip(-1)=180
                 cv::flip(matLead, matLeadTmp, -1);    //flip(-1)=180
+
+                leadGoIntoChipPos = pstCmd->rectChipBody.y - pstCmd->rectLeadWindow.y;
             }
         }else {
             if (ptPadCtr.x < ptLeadCtr.x) {
@@ -4431,6 +4438,8 @@ VisionStatus VisionAlgorithm::_findLineByCaliper(const cv::Mat &matInputImg, con
             
                 cv::transpose(matLead, matLeadTmp);
                 cv::flip(matLeadTmp, matLeadTmp, 1); //transpose+flip(1)=CW
+
+                leadGoIntoChipPos = pstCmd->rectLeadWindow.x + pstCmd->rectLeadWindow.width - pstCmd->rectChipBody.x;
             }else {
                 enLeadDir = PR_DIRECTION::RIGHT;
 
@@ -4438,6 +4447,8 @@ VisionStatus VisionAlgorithm::_findLineByCaliper(const cv::Mat &matInputImg, con
                 cv::flip(matPadTmp, matPadTmp, 0); //transpose+flip(0)=CCW
                 cv::transpose(matLead, matLeadTmp);
                 cv::flip(matLeadTmp, matLeadTmp, 0); //transpose+flip(0)=CCW
+
+                leadGoIntoChipPos = pstCmd->rectChipBody.x - pstCmd->rectLeadWindow.x;
             }
         }
         matLead = matLeadTmp;
@@ -4454,7 +4465,8 @@ VisionStatus VisionAlgorithm::_findLineByCaliper(const cv::Mat &matInputImg, con
     
     pstRpy->enStatus = VisionStatus::OK;
 
-    const int nMarginToChip = 40;
+    leadGoIntoChipPos = leadGoIntoChipPos > 0 ? leadGoIntoChipPos : 0;
+    const int nMarginToChip = 40 + leadGoIntoChipPos;
     const int nEnlargeChipMargin = 10;
     for (auto enDir : pstCmd->vecSrchLeadDirections) {
         cv::Rect rectSubRegion;
