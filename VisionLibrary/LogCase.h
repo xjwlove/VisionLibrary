@@ -574,6 +574,7 @@ private:
     const String _strKeyDirDown         = "DirDown";
     const String _strKeyDirLeft         = "DirLeft";
     const String _strKeyDirRight        = "DirRight";
+    const String _strKeyMinMatchScore   = "MinMatchScore";
 
     const String _strKeyStatus          = "Status";
     const String _strLeadLocation       = "LeadLocation_";  //End with _ because it will concatenate with lead number.

@@ -1576,6 +1576,9 @@ VisionStatus LogCaseAutoLocateLead::WriteCmd(const PR_AUTO_LOCATE_LEAD_CMD *cons
             break;
         }
     }
+
+    ini.SetDoubleValue(_CMD_SECTION.c_str(), _strKeyMinMatchScore.c_str(), pstCmd->fMinMatchScore);
+
     ini.SaveFile(cmdRpyFilePath.c_str());
 
     cv::Mat matSrchROI(pstCmd->matInputImg, pstCmd->rectSrchWindow);
@@ -1625,6 +1628,7 @@ VisionStatus LogCaseAutoLocateLead::RunLogCase() {
         stCmd.vecSrchLeadDirections.push_back(PR_DIRECTION::LEFT);
     if (ini.GetBoolValue(_CMD_SECTION.c_str(), _strKeyDirRight.c_str(), false))
         stCmd.vecSrchLeadDirections.push_back(PR_DIRECTION::RIGHT);
+    stCmd.fMinMatchScore = ToFloat(ini.GetDoubleValue(_CMD_SECTION.c_str(), _strKeyMinMatchScore.c_str(), 60.));   
     VisionStatus enStatus = VisionAlgorithm::autoLocateLead(&stCmd, &stRpy, true);
     WriteRpy(&stCmd, &stRpy);
     return enStatus;
@@ -2205,7 +2209,7 @@ VisionStatus LogCaseInspLeadTmpl::RunLogCase() {
     stCmd.fLrnedPadLeadDist = ToFloat(ini.GetDoubleValue(_CMD_SECTION.c_str(), _strKeyPadLeadDist.c_str(), 0.));
     stCmd.fMaxLeadOffsetX = ToFloat(ini.GetDoubleValue(_CMD_SECTION.c_str(), _strKeyMaxLeadOffsetX.c_str(), 500.));
     stCmd.fMaxLeadOffsetY = ToFloat(ini.GetDoubleValue(_CMD_SECTION.c_str(), _strKeyMaxLeadOffsetY.c_str(), 500.));
-    stCmd.fMinMatchScore = ToFloat(ini.GetDoubleValue(_CMD_SECTION.c_str(), _strKeyMinMatchScore.c_str(), 60.));   
+    stCmd.fMinMatchScore = ToFloat(ini.GetDoubleValue(_CMD_SECTION.c_str(), _strKeyMinMatchScore.c_str(), 60.));
 
     VisionStatus enStatus = VisionStatus::OK;
     enStatus = VisionAlgorithm::inspLeadTmpl(&stCmd, &stRpy, true);

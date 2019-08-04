@@ -4654,12 +4654,13 @@ VisionStatus VisionAlgorithm::_findLineByCaliper(const cv::Mat &matInputImg, con
             }
 
             MatchTmpl::matchTemplate(matLeadSrchROI, matPad, false, PR_OBJECT_MOTION::TRANSLATION, ptPadPosition, fPadRotation, fPadScore);
-            if (fPadScore < 0.6f) {
+            if (fPadScore * 100.f < pstCmd->fMinMatchScore) {
                 if (ConfigInstance->getDebugMode() == PR_DEBUG_MODE::SHOW_IMAGE) {
                     showImage("Srch Pad Fail", matLeadSrchROI);
                 }
                 char msg[1000];
-                _snprintf(msg, sizeof(msg), "Auto locate lead at direction %d failed to search pad at %d lead.", ToInt32(enDir), i);
+                _snprintf(msg, sizeof(msg), "Auto locate pad failed in dir %d at lead index %d, match score %.1f, required %.1f.",
+                    ToInt32(enDir), i, fPadScore * 100.f, pstCmd->fMinMatchScore);
                 WriteLog(msg);
                 pstRpy->enStatus = VisionStatus::AUTO_LOCATE_LEAD_FAIL;
                 continue;
@@ -4683,12 +4684,13 @@ VisionStatus VisionAlgorithm::_findLineByCaliper(const cv::Mat &matInputImg, con
         }
 
         MatchTmpl::matchTemplate(matLeadSrchROI, matLead, false, PR_OBJECT_MOTION::TRANSLATION, ptLeadPosition, fLeadRotation, fLeadScore);
-        if (fPadScore < 0.6f) {
+        if (fLeadScore * 100.f < pstCmd->fMinMatchScore) {
             if (ConfigInstance->getDebugMode() == PR_DEBUG_MODE::SHOW_IMAGE) {
                 showImage("Srch Lead Fail", matLeadSrchROI);
             }
             char msg[1000];
-            _snprintf(msg, sizeof(msg), "Auto locate lead at direction %d failed to search lead at lead index %d.", ToInt32(enDir), i);
+            _snprintf(msg, sizeof(msg), "Auto locate lead failed in dir %d at lead index %d, match score %.1f, required %.1f.",
+                ToInt32(enDir), i, fLeadScore * 100.f, pstCmd->fMinMatchScore);
             WriteLog(msg);
             pstRpy->enStatus = VisionStatus::AUTO_LOCATE_LEAD_FAIL;
             continue;
@@ -6295,6 +6297,10 @@ VisionStatus VisionAlgorithm::_findLineByCaliper(const cv::Mat &matInputImg, con
 }
 
 /*static*/ VisionStatus VisionAlgorithm::inspLeadTmpl(const PR_INSP_LEAD_TMPL_CMD *const pstCmd, PR_INSP_LEAD_TMPL_RPY *const pstRpy, bool bReplay /*= false*/) {
+    pstRpy->fLeadOffsetX = 0.f;
+    pstRpy->fLeadOffsetY = 0.f;
+    pstRpy->fPadMatchScore = 0.f;
+    pstRpy->fLeadMatchScore = 0.f;
     assert(pstCmd != nullptr && pstRpy != nullptr);
     if (pstCmd->matInputImg.empty()) {
         WriteLog("Input image is empty.");
@@ -6343,9 +6349,11 @@ VisionStatus VisionAlgorithm::_findLineByCaliper(const cv::Mat &matInputImg, con
         showImage("Lead template", ptrLeadRecord->getTmpl());
 
     cv::Point2f ptLeadPos, ptPadPos;
-    float fLeadRotation, fPadRotation, fLeadScore, fPadScore;
-    MatchTmpl::matchTemplate(matGrayROI, ptrLeadRecord->getTmpl(), false, PR_OBJECT_MOTION::TRANSLATION, ptLeadPos, fLeadRotation, fLeadScore);
-    if (fLeadScore * ConstToPercentage < pstCmd->fMinMatchScore) {
+    float fLeadRotation, fPadRotation;
+    MatchTmpl::matchTemplate(matGrayROI, ptrLeadRecord->getTmpl(), false, PR_OBJECT_MOTION::TRANSLATION,
+        ptLeadPos, fLeadRotation, pstRpy->fLeadMatchScore);
+    pstRpy->fLeadMatchScore *= ConstToPercentage;
+    if (pstRpy->fLeadMatchScore < pstCmd->fMinMatchScore) {
         pstRpy->enStatus = VisionStatus::NOT_FIND_LEAD;
         FINISH_LOGCASE_EX;
         return pstRpy->enStatus;
@@ -6365,8 +6373,10 @@ VisionStatus VisionAlgorithm::_findLineByCaliper(const cv::Mat &matInputImg, con
         if (ConfigInstance->getDebugMode() == Vision::PR_DEBUG_MODE::SHOW_IMAGE)
             showImage("Pad template", ptrPadRecord->getTmpl());
 
-        MatchTmpl::matchTemplate(matGrayROI, ptrPadRecord->getTmpl(), false, PR_OBJECT_MOTION::TRANSLATION, ptPadPos, fPadRotation, fPadScore);
-        if (fPadScore * ConstToPercentage < pstCmd->fMinMatchScore) {
+        MatchTmpl::matchTemplate(matGrayROI, ptrPadRecord->getTmpl(), false, PR_OBJECT_MOTION::TRANSLATION,
+            ptPadPos, fPadRotation, pstRpy->fPadMatchScore);
+        pstRpy->fPadMatchScore *= ConstToPercentage;
+        if (pstRpy->fPadMatchScore < pstCmd->fMinMatchScore) {
             pstRpy->enStatus = VisionStatus::NOT_FIND_LEAD;
             FINISH_LOGCASE_EX;
             return pstRpy->enStatus;
