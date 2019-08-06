@@ -794,6 +794,10 @@ struct PR_CALC_UNDISTORT_RECTIFY_MAP_RPY {
 };
 
 struct PR_AUTO_LOCATE_LEAD_CMD {
+    PR_AUTO_LOCATE_LEAD_CMD() :
+        enMethod        (PR_AUTO_LOCATE_LEAD_METHOD::TEMPLATE_MATCH),
+        enLeadAttribute (PR_OBJECT_ATTRIBUTE::BRIGHT),
+        fMinMatchScore  (60.f) {}
     cv::Mat                     matInputImg;
     PR_AUTO_LOCATE_LEAD_METHOD  enMethod;
     cv::Rect                    rectSrchWindow;
@@ -802,6 +806,7 @@ struct PR_AUTO_LOCATE_LEAD_CMD {
     cv::Rect                    rectPadWindow;
     cv::Rect                    rectLeadWindow;
     VectorOfDirection           vecSrchLeadDirections;
+    float                       fMinMatchScore;
 };
 
 struct PR_AUTO_LOCATE_LEAD_RPY {
@@ -1024,7 +1029,12 @@ struct PR_INSP_LEAD_CMD {
         cv::RotatedRect     rectExpectedWindow;
     };
     using VECTOR_LEAD_INPUT_INFO = std::vector<LEAD_INPUT_INFO>;
-    PR_INSP_LEAD_CMD() : fLeadStartWidthRatio ( 0.5f ), nLeadStartConsecutiveLength(2), fLeadEndWidthRatio (0.5f), nLeadEndConsecutiveLength(2), enFindLeadEndMethod(PR_FIND_LEAD_END_METHOD::AVERAGE) {}
+    PR_INSP_LEAD_CMD() :
+        fLeadStartWidthRatio        (0.5f),
+        nLeadStartConsecutiveLength (2),
+        fLeadEndWidthRatio          (0.5f),
+        nLeadEndConsecutiveLength   (2),
+        enFindLeadEndMethod         (PR_FIND_LEAD_END_METHOD::AVERAGE) {}
     cv::Mat                 matInputImg;
     cv::RotatedRect         rectChipWindow;
     VECTOR_LEAD_INPUT_INFO  vecLeads;
@@ -1069,6 +1079,8 @@ struct PR_INSP_LEAD_TMPL_RPY {
     cv::Point2f         ptLeadPos;
     float               fLeadOffsetX;
     float               fLeadOffsetY;
+    float               fPadMatchScore;
+    float               fLeadMatchScore;
 };
 /******************************************
 * End of Inspect Lead Section *

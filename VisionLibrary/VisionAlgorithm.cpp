@@ -1065,7 +1065,9 @@ VisionStatus VisionAlgorithm::inspDevice(PR_INSP_DEVICE_CMD *pstInspDeviceCmd, P
     }
 
     if (ptrRecord->getTmpl().rows > pstCmd->rectSrchWindow.height || ptrRecord->getTmpl().cols > pstCmd->rectSrchWindow.width) {
-        WriteLog("The template is bigger than search window.");
+        std::stringstream ss;
+        ss << "The template size " << ptrRecord->getTmpl().size() << " is bigger than search window size " << pstCmd->rectSrchWindow.size();
+        WriteLog(ss.str());
         pstRpy->enStatus = VisionStatus::INVALID_PARAM;
         return pstRpy->enStatus;
     }
@@ -4406,21 +4408,26 @@ VisionStatus VisionAlgorithm::_findLineByCaliper(const cv::Mat &matInputImg, con
     }
 
     PR_DIRECTION enLeadDir = PR_DIRECTION::UP;
+    int leadGoIntoChipPos = 0;
     // Auto determine the direction of the input template lead.
     if (pstCmd->rectPadWindow.area() > 0) {
         cv::Point ptLeadCtr = cv::Point(pstCmd->rectLeadWindow.x + pstCmd->rectLeadWindow.width / 2, pstCmd->rectLeadWindow.y + pstCmd->rectLeadWindow.height / 2);
         cv::Point ptPadCtr  = cv::Point(pstCmd->rectPadWindow.x  + pstCmd->rectPadWindow.width  / 2, pstCmd->rectPadWindow.y  + pstCmd->rectPadWindow.height  / 2);
         cv::Mat matLeadTmp, matPadTmp;
         // Lead is vertical
-        if (abs(ptPadCtr.y - ptLeadCtr.y) >abs(ptPadCtr.x - ptLeadCtr.x)) {
+        if (abs(ptPadCtr.y - ptLeadCtr.y) > abs(ptPadCtr.x - ptLeadCtr.x)) {
             if (ptPadCtr.y < ptLeadCtr.y) {
                 enLeadDir = PR_DIRECTION::UP;
                 matLeadTmp = matLead;
                 matPadTmp = matPad;
+
+                leadGoIntoChipPos = pstCmd->rectLeadWindow.y + pstCmd->rectLeadWindow.height - pstCmd->rectChipBody.y;
             }else {
                 enLeadDir = PR_DIRECTION::DOWN;
                 cv::flip(matPad, matPadTmp, -1);    //flip(-1)=180
                 cv::flip(matLead, matLeadTmp, -1);    //flip(-1)=180
+
+                leadGoIntoChipPos = pstCmd->rectChipBody.y - pstCmd->rectLeadWindow.y;
             }
         }else {
             if (ptPadCtr.x < ptLeadCtr.x) {
@@ -4431,6 +4438,8 @@ VisionStatus VisionAlgorithm::_findLineByCaliper(const cv::Mat &matInputImg, con
             
                 cv::transpose(matLead, matLeadTmp);
                 cv::flip(matLeadTmp, matLeadTmp, 1); //transpose+flip(1)=CW
+
+                leadGoIntoChipPos = pstCmd->rectLeadWindow.x + pstCmd->rectLeadWindow.width - pstCmd->rectChipBody.x;
             }else {
                 enLeadDir = PR_DIRECTION::RIGHT;
 
@@ -4438,6 +4447,8 @@ VisionStatus VisionAlgorithm::_findLineByCaliper(const cv::Mat &matInputImg, con
                 cv::flip(matPadTmp, matPadTmp, 0); //transpose+flip(0)=CCW
                 cv::transpose(matLead, matLeadTmp);
                 cv::flip(matLeadTmp, matLeadTmp, 0); //transpose+flip(0)=CCW
+
+                leadGoIntoChipPos = pstCmd->rectChipBody.x - pstCmd->rectLeadWindow.x;
             }
         }
         matLead = matLeadTmp;
@@ -4454,7 +4465,8 @@ VisionStatus VisionAlgorithm::_findLineByCaliper(const cv::Mat &matInputImg, con
     
     pstRpy->enStatus = VisionStatus::OK;
 
-    const int nMarginToChip = 40;
+    leadGoIntoChipPos = leadGoIntoChipPos > 0 ? leadGoIntoChipPos : 0;
+    const int nMarginToChip = 40 + leadGoIntoChipPos;
     const int nEnlargeChipMargin = 10;
     for (auto enDir : pstCmd->vecSrchLeadDirections) {
         cv::Rect rectSubRegion;
@@ -4642,12 +4654,13 @@ VisionStatus VisionAlgorithm::_findLineByCaliper(const cv::Mat &matInputImg, con
             }
 
             MatchTmpl::matchTemplate(matLeadSrchROI, matPad, false, PR_OBJECT_MOTION::TRANSLATION, ptPadPosition, fPadRotation, fPadScore);
-            if (fPadScore < 0.6f) {
+            if (fPadScore * 100.f < pstCmd->fMinMatchScore) {
                 if (ConfigInstance->getDebugMode() == PR_DEBUG_MODE::SHOW_IMAGE) {
                     showImage("Srch Pad Fail", matLeadSrchROI);
                 }
                 char msg[1000];
-                _snprintf(msg, sizeof(msg), "Auto locate lead at direction %d failed to search pad at %d lead.", ToInt32(enDir), i);
+                _snprintf(msg, sizeof(msg), "Auto locate pad failed in dir %d at lead index %d, match score %.1f, required %.1f.",
+                    ToInt32(enDir), i, fPadScore * 100.f, pstCmd->fMinMatchScore);
                 WriteLog(msg);
                 pstRpy->enStatus = VisionStatus::AUTO_LOCATE_LEAD_FAIL;
                 continue;
@@ -4671,12 +4684,13 @@ VisionStatus VisionAlgorithm::_findLineByCaliper(const cv::Mat &matInputImg, con
         }
 
         MatchTmpl::matchTemplate(matLeadSrchROI, matLead, false, PR_OBJECT_MOTION::TRANSLATION, ptLeadPosition, fLeadRotation, fLeadScore);
-        if (fPadScore < 0.6f) {
+        if (fLeadScore * 100.f < pstCmd->fMinMatchScore) {
             if (ConfigInstance->getDebugMode() == PR_DEBUG_MODE::SHOW_IMAGE) {
                 showImage("Srch Lead Fail", matLeadSrchROI);
             }
             char msg[1000];
-            _snprintf(msg, sizeof(msg), "Auto locate lead at direction %d failed to search lead at lead index %d.", ToInt32(enDir), i);
+            _snprintf(msg, sizeof(msg), "Auto locate lead failed in dir %d at lead index %d, match score %.1f, required %.1f.",
+                ToInt32(enDir), i, fLeadScore * 100.f, pstCmd->fMinMatchScore);
             WriteLog(msg);
             pstRpy->enStatus = VisionStatus::AUTO_LOCATE_LEAD_FAIL;
             continue;
@@ -6283,6 +6297,10 @@ VisionStatus VisionAlgorithm::_findLineByCaliper(const cv::Mat &matInputImg, con
 }
 
 /*static*/ VisionStatus VisionAlgorithm::inspLeadTmpl(const PR_INSP_LEAD_TMPL_CMD *const pstCmd, PR_INSP_LEAD_TMPL_RPY *const pstRpy, bool bReplay /*= false*/) {
+    pstRpy->fLeadOffsetX = 0.f;
+    pstRpy->fLeadOffsetY = 0.f;
+    pstRpy->fPadMatchScore = 0.f;
+    pstRpy->fLeadMatchScore = 0.f;
     assert(pstCmd != nullptr && pstRpy != nullptr);
     if (pstCmd->matInputImg.empty()) {
         WriteLog("Input image is empty.");
@@ -6331,9 +6349,11 @@ VisionStatus VisionAlgorithm::_findLineByCaliper(const cv::Mat &matInputImg, con
         showImage("Lead template", ptrLeadRecord->getTmpl());
 
     cv::Point2f ptLeadPos, ptPadPos;
-    float fLeadRotation, fPadRotation, fLeadScore, fPadScore;
-    MatchTmpl::matchTemplate(matGrayROI, ptrLeadRecord->getTmpl(), false, PR_OBJECT_MOTION::TRANSLATION, ptLeadPos, fLeadRotation, fLeadScore);
-    if (fLeadScore * ConstToPercentage < pstCmd->fMinMatchScore) {
+    float fLeadRotation, fPadRotation;
+    MatchTmpl::matchTemplate(matGrayROI, ptrLeadRecord->getTmpl(), false, PR_OBJECT_MOTION::TRANSLATION,
+        ptLeadPos, fLeadRotation, pstRpy->fLeadMatchScore);
+    pstRpy->fLeadMatchScore *= ConstToPercentage;
+    if (pstRpy->fLeadMatchScore < pstCmd->fMinMatchScore) {
         pstRpy->enStatus = VisionStatus::NOT_FIND_LEAD;
         FINISH_LOGCASE_EX;
         return pstRpy->enStatus;
@@ -6353,8 +6373,10 @@ VisionStatus VisionAlgorithm::_findLineByCaliper(const cv::Mat &matInputImg, con
         if (ConfigInstance->getDebugMode() == Vision::PR_DEBUG_MODE::SHOW_IMAGE)
             showImage("Pad template", ptrPadRecord->getTmpl());
 
-        MatchTmpl::matchTemplate(matGrayROI, ptrPadRecord->getTmpl(), false, PR_OBJECT_MOTION::TRANSLATION, ptPadPos, fPadRotation, fPadScore);
-        if (fPadScore * ConstToPercentage < pstCmd->fMinMatchScore) {
+        MatchTmpl::matchTemplate(matGrayROI, ptrPadRecord->getTmpl(), false, PR_OBJECT_MOTION::TRANSLATION,
+            ptPadPos, fPadRotation, pstRpy->fPadMatchScore);
+        pstRpy->fPadMatchScore *= ConstToPercentage;
+        if (pstRpy->fPadMatchScore < pstCmd->fMinMatchScore) {
             pstRpy->enStatus = VisionStatus::NOT_FIND_LEAD;
             FINISH_LOGCASE_EX;
             return pstRpy->enStatus;
