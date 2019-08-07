@@ -1438,14 +1438,15 @@ struct PR_CALC_MERGE_4_DLP_HEIGHT_CMD {
     PR_CALC_MERGE_4_DLP_HEIGHT_CMD() :
         fHeightDiffThreshold1(0.1f),
         fHeightDiffThreshold2(0.2f) {}
-    PR_CALC_3D_HEIGHT_GPU_CMD arrCalcHeightCmd[NUM_OF_DLP];
-    float                   fHeightDiffThreshold1;   //The height difference threshold. Unit mm. If height difference less than it, the result height is average of the input height. If larger than it, the result height use the small height.
-    float                   fHeightDiffThreshold2;   //The second time merge
+    PR_CALC_3D_HEIGHT_GPU_CMD   arrCalcHeightCmd[NUM_OF_DLP];
+    float                       fHeightDiffThreshold1;   //The height difference threshold. Unit mm. If height difference less than it, the result height is average of the input height. If larger than it, the result height use the small height.
+    float                       fHeightDiffThreshold2;   //The second time merge
 };
 
 struct PR_CALC_MERGE_4_DLP_HEIGHT_RPY {
     VisionStatus            enStatus;
     cv::Mat                 matHeight;
+    cv::Mat                 matHeightGray; // The height convert to gray image
 };
 
 struct PR_CALC_3D_HEIGHT_DIFF_CMD {

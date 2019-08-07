@@ -1795,19 +1795,11 @@ void TestCalc4DLPHeight_SimulateMachine()
 
         saveMatToCsv(stCalc3DlpHeightRpy.matHeight, strResultFolder + "Final_Height.csv");
 
-        PR_HEIGHT_TO_GRAY_CMD stCmd;
-        PR_HEIGHT_TO_GRAY_RPY stRpy;
-        stCmd.matHeight = stCalc3DlpHeightRpy.matHeight;
-        PR_HeightToGray(&stCmd, &stRpy);
-        if (VisionStatus::OK == stRpy.enStatus) {
-            cv::imwrite(strResultFolder + "Final_HeightGray.png", stRpy.matGray);
-            cv::imwrite(strResultFolder + "Final_HeightGray_Grid.png", _drawHeightGrid(stCalc3DlpHeightRpy.matHeight, 10, 10));
-            std::cout << "Success to calculate 4 DLP height" << std::endl;
-            std::cout << "Result written to folder: " << strResultFolder << std::endl;
-        }
-        else {
-            std::cout << "Failed to convert height to gray scale" << std::endl;
-        }
+
+        cv::imwrite(strResultFolder + "Final_HeightGray.png", stCalc3DlpHeightRpy.matHeightGray);
+        cv::imwrite(strResultFolder + "Final_HeightGray_Grid.png", _drawHeightGrid(stCalc3DlpHeightRpy.matHeight, 10, 10));
+        std::cout << "Success to calculate 4 DLP height" << std::endl;
+        std::cout << "Result written to folder: " << strResultFolder << std::endl;
     }
 
     //{

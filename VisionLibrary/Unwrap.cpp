@@ -1462,6 +1462,18 @@ static inline cv::Mat calcOrder5BezierCoeff(const cv::Mat &matU) {
     auto matResultGpu = _merge4DlpHeightCore(vecGpuHeights, vecGpuNanMasks, vecProjDir,
         pstCmd->fHeightDiffThreshold1, pstCmd->fHeightDiffThreshold2, arrStreams[0], arrStreams[1]);
     matResultGpu.download(pstRpy->matHeight);
+
+    TimeLog::GetInstance()->addTimeLog("After merge 4 DLP height", stopWatch.Span());
+
+    // Use gpu to calculate the height gray
+    CudaAlgorithm::getNanMask(matResultGpu, vecGpuNanMasks[0]);
+    cv::cuda::bitwise_not(vecGpuNanMasks[0], vecGpuNanMasks[0]);
+    double dMin = 0., dMax = 0.;
+    cv::cuda::minMax(matResultGpu, &dMin, &dMax, vecGpuNanMasks[0]);
+    cv::cuda::subtract(matResultGpu, dMin, matResultGpu);
+    cv::cuda::multiply(matResultGpu, PR_MAX_GRAY_LEVEL / (dMax - dMin), matResultGpu);
+    matResultGpu.convertTo(vecGpuNanMasks[0], CV_8UC1);
+    vecGpuNanMasks[0].download(pstRpy->matHeightGray);
     pstRpy->enStatus = VisionStatus::OK;
 }
 

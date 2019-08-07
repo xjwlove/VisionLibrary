@@ -14,8 +14,11 @@
  * Copyright (c) 2016-2018, Xiao Shengguang.  All rights reserved.
  ****************************************************************************/
 
+//2019-08-05 (XSG) Support use GPU to do height to gray convert.
+#define AOI_VISION_VERSION          "1.00.73"
+
 //2019-08-04 (XSG) Support auto locate lead input score.
-#define AOI_VISION_VERSION          "1.00.72"
+//#define AOI_VISION_VERSION          "1.00.72"
 
 //2019-07-14 (XSG) Support 3D height use 10 dlp images.
 //#define AOI_VISION_VERSION          "1.00.71"
