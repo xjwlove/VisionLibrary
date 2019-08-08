@@ -170,7 +170,9 @@ MatchTmpl::~MatchTmpl() {
 
 /*static*/ cv::Point MatchTmpl::myMatchTemplate(const cv::Mat &mat, const cv::Mat &matTmpl, const cv::Mat &matMask) {
     cv::Mat matResult;
-    int match_method = CV_TM_SQDIFF;
+    int match_method = CV_TM_SQDIFF_NORMED;
+    if (!matMask.empty())
+        match_method = CV_TM_SQDIFF; // Because CV_TM_SQDIFF_NORMED doesn't support mask
 
     /// Create the result matrix
     int result_cols = mat.cols - matTmpl.cols + 1;
@@ -251,6 +253,7 @@ MatchTmpl::~MatchTmpl() {
 
     const double correlation = tmpSubtractedMean.dot(imgSubtractedMean);
     float rho = ToFloat(correlation / (imgNorm*tmpNorm));
+    if (rho < 0.f) rho = 0.f;
     return rho;
 }
 

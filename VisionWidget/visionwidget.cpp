@@ -466,7 +466,7 @@ void VisionWidget::on_btnLrnTemplate_clicked() {
     PR_LRN_TEMPLATE_RPY stRpy;
     stCmd.matInputImg = ui.visionView->getMat();
     stCmd.rectROI = ui.visionView->getSelectedWindow();
-    stCmd.enAlgorithm = PR_MATCH_TMPL_ALGORITHM::SQUARE_DIFF;
+    stCmd.enAlgorithm = PR_MATCH_TMPL_ALGORITHM::SQUARE_DIFF_NORMED;
     if (ui.cbMatchTmplAlgorithm->currentIndex() == 1)
         stCmd.enAlgorithm = PR_MATCH_TMPL_ALGORITHM::HIERARCHICAL_EDGE;
     else if (ui.cbMatchTmplAlgorithm->currentIndex() == 2)
@@ -499,7 +499,7 @@ void VisionWidget::on_matchTmplBtn_clicked() {
     stCmd.nRecordId = _nTmplRecordId;
     stCmd.rectSrchWindow = ui.visionView->getSelectedWindow();
     stCmd.enMotion = static_cast<PR_OBJECT_MOTION>(ui.cbMatchTmplMotion->currentIndex());
-    stCmd.enAlgorithm = PR_MATCH_TMPL_ALGORITHM::SQUARE_DIFF;
+    stCmd.enAlgorithm = PR_MATCH_TMPL_ALGORITHM::SQUARE_DIFF_NORMED;
     if (ui.cbMatchTmplAlgorithm->currentIndex() == 1)
         stCmd.enAlgorithm = PR_MATCH_TMPL_ALGORITHM::HIERARCHICAL_EDGE;
     else if (ui.cbMatchTmplAlgorithm->currentIndex() == 2)

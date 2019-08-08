@@ -1091,7 +1091,7 @@ VisionStatus VisionAlgorithm::inspDevice(PR_INSP_DEVICE_CMD *pstInspDeviceCmd, P
     if (ConfigInstance->getDebugMode() == PR_DEBUG_MODE::SHOW_IMAGE)
         showImage("Template Image", matTmpl);
 
-    if (PR_MATCH_TMPL_ALGORITHM::SQUARE_DIFF == pstCmd->enAlgorithm) {
+    if (PR_MATCH_TMPL_ALGORITHM::SQUARE_DIFF_NORMED == pstCmd->enAlgorithm) {
         float fCorrelation;
         pstRpy->enStatus = MatchTmpl::matchTemplate(matSrchROI, matTmpl, pstCmd->bSubPixelRefine, pstCmd->enMotion, pstRpy->ptObjPos, pstRpy->fRotation, fCorrelation, ptrRecord->getMask());
         pstRpy->ptObjPos.x += pstCmd->rectSrchWindow.x;
@@ -1718,7 +1718,7 @@ VisionStatus VisionAlgorithm::_writeDeviceRecord(PR_LRN_DEVICE_RPY *pLrnDeviceRp
         cv::cvtColor(matSrchROI, matSrchROI, cv::COLOR_BGR2GRAY);
 
     float fRotation = 0.f, fCorrelation = 0.f;
-    pstRpy->enStatus = MatchTmpl::matchTemplate(matSrchROI, matTmpl, true, PR_OBJECT_MOTION::TRANSLATION, ptResult, fRotation, fCorrelation);
+    pstRpy->enStatus = MatchTmpl::matchTemplate(matSrchROI, matTmpl, false, PR_OBJECT_MOTION::TRANSLATION, ptResult, fRotation, fCorrelation);
 
     pstRpy->ptPos.x = ptResult.x + pstCmd->rectSrchWindow.x;
     pstRpy->ptPos.y = ptResult.y + pstCmd->rectSrchWindow.y;
@@ -4503,12 +4503,12 @@ VisionStatus VisionAlgorithm::_findLineByCaliper(const cv::Mat &matInputImg, con
         Int32 nPadRecordId = 0, nLeadRecordId = 0;
         auto ptrPadRecord = std::make_shared<TmplRecord>(PR_RECORD_TYPE::TEMPLATE);
         ptrPadRecord->setTmpl(matPadTmp);
-        ptrPadRecord->setAlgorithm(PR_MATCH_TMPL_ALGORITHM::SQUARE_DIFF);
+        ptrPadRecord->setAlgorithm(PR_MATCH_TMPL_ALGORITHM::SQUARE_DIFF_NORMED);
         RecordManagerInstance->add(ptrPadRecord, nPadRecordId);
         pstRpy->vecPadRecordId.push_back(nPadRecordId);
 
         auto ptrLeadRecord = std::make_shared<TmplRecord>(PR_RECORD_TYPE::TEMPLATE);
-        ptrLeadRecord->setAlgorithm(PR_MATCH_TMPL_ALGORITHM::SQUARE_DIFF);
+        ptrLeadRecord->setAlgorithm(PR_MATCH_TMPL_ALGORITHM::SQUARE_DIFF_NORMED);
         ptrLeadRecord->setTmpl(matLeadTmp);
         RecordManagerInstance->add(ptrLeadRecord, nLeadRecordId);
         pstRpy->vecLeadRecordId.push_back(nLeadRecordId);
