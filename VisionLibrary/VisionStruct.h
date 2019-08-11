@@ -96,7 +96,7 @@ struct PR_SRCH_OBJ_RPY {
 * Match Template Section *
 ******************************************/
 struct PR_LRN_TEMPLATE_CMD {
-    PR_LRN_TEMPLATE_CMD() : enAlgorithm (PR_MATCH_TMPL_ALGORITHM::SQUARE_DIFF) {}
+    PR_LRN_TEMPLATE_CMD() : enAlgorithm (PR_MATCH_TMPL_ALGORITHM::SQUARE_DIFF_NORMED) {}
     cv::Mat                 matInputImg;
     cv::Mat                 matMask;
     cv::Rect                rectROI;
@@ -111,7 +111,7 @@ struct PR_LRN_TEMPLATE_RPY {
 
 struct PR_MATCH_TEMPLATE_CMD {
     PR_MATCH_TEMPLATE_CMD() :
-        enAlgorithm         (PR_MATCH_TMPL_ALGORITHM::SQUARE_DIFF),
+        enAlgorithm         (PR_MATCH_TMPL_ALGORITHM::SQUARE_DIFF_NORMED),
         nRecordId           (-1),
         bSubPixelRefine     (false),
         enMotion            (PR_OBJECT_MOTION::TRANSLATION),

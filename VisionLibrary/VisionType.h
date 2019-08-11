@@ -140,7 +140,7 @@ enum class PR_FILL_HOLE_METHOD {
 };
 
 enum class PR_MATCH_TMPL_ALGORITHM {
-    SQUARE_DIFF,
+    SQUARE_DIFF_NORMED,
     HIERARCHICAL_EDGE       = 10,
     HIERARCHICAL_AREA       = 11,
 };

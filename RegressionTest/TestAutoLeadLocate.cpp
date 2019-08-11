@@ -92,7 +92,7 @@ void TestAutoLocateLead()
     stCmd.rectSrchWindow = cv::Rect(cv::Point(631, 399), cv::Point( 1719, 1491));
     stCmd.rectChipBody =   cv::Rect(cv::Point(860, 630), cv::Point(1491, 1261));
     stCmd.rectPadWindow = cv::Rect(cv::Point(898, 446), cv::Point(946, 544));
-    stCmd.rectLeadWindow = cv::Rect(cv::Point(900, 544), cv::Point(944, 630));
+    stCmd.rectLeadWindow = cv::Rect(cv::Point(900, 544), cv::Point(944, 650));
     stCmd.vecSrchLeadDirections.clear();
     stCmd.vecSrchLeadDirections.push_back(PR_DIRECTION::RIGHT);
     stCmd.vecSrchLeadDirections.push_back(PR_DIRECTION::UP);

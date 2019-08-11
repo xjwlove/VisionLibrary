@@ -504,7 +504,7 @@ Match template angle 0.0
 MATCH TEMPLATE REGRESSION TEST #5 STARTING
 ------------------------------------------
 Match template status 25
-Match template score 8.3
+Match template score 5.6
 
 ------------------------------------------
 MATCH TEMPLATE REGRESSION TEST #6 STARTING
@@ -512,25 +512,33 @@ MATCH TEMPLATE REGRESSION TEST #6 STARTING
 Match template status 25
 Match template score 51.6
 
+------------------------------------------
+MATCH TEMPLATE REGRESSION TEST #7 STARTING
+------------------------------------------
+Match template status 0
+Match template score 88.1
+Match template result 1397.5, 1348.5
+Match template angle 0.0
+
 ------------------------------------------------
 SEARCH FIDUCIAL MARK REGRESSION TEST #1 STARTING
 ------------------------------------------------
 Search fiducial status 0
-Match Score: 97
-Search fiducial result 1677.0, 375.3
+Match Score: 93
+Search fiducial result 1676.5, 375.5
 
 ------------------------------------------------
 SEARCH FIDUCIAL MARK REGRESSION TEST #2 STARTING
 ------------------------------------------------
 Search fiducial status 0
-Match Score: 96
-Search fiducial result 128.4, 193.9
+Match Score: 93
+Search fiducial result 128.5, 194.5
 
 ------------------------------------------------
 SEARCH FIDUCIAL MARK REGRESSION TEST #3 STARTING
 ------------------------------------------------
 Search fiducial status 25
-Match Score: 47
+Match Score: 0
 
 ------------------------------------------
 FIT LINE REGRESSION TEST #1 STARTING
@@ -1058,7 +1066,7 @@ CALIBRATE CAMERA REGRESSION TEST #1 STARTING
 Calibrate camera status 0
 Camera resolution (23.76, 23.78)
 Camera distoration coefficients:
--7.0 -0.2 -0.0 -0.0 -0.0 
+-6.8 -0.3 -0.0 -0.0 -0.0 
 
 ---------------------------------------------
 CALIBRATE CAMERA REGRESSION TEST #2 STARTING
@@ -1066,7 +1074,7 @@ CALIBRATE CAMERA REGRESSION TEST #2 STARTING
 Calibrate camera status 0
 Camera resolution (6.05, 6.03)
 Camera distoration coefficients:
--10.6 -0.0 -0.0 0.0 -0.0 
+-9.9 -0.0 -0.0 0.0 -0.0 
 
 ---------------------------------------------
 CALIBRATE CAMERA REGRESSION TEST #3 STARTING
@@ -1074,7 +1082,7 @@ CALIBRATE CAMERA REGRESSION TEST #3 STARTING
 Calibrate camera status 0
 Camera resolution (6.01, 6.04)
 Camera distoration coefficients:
--21.7 -0.0 0.0 -0.0 -0.0 
+-22.1 -0.0 0.0 -0.0 -0.0 
 
 ---------------------------------------------
 CALIBRATE CAMERA REGRESSION TEST #4 STARTING
@@ -1087,7 +1095,7 @@ CALIBRATE CAMERA REGRESSION TEST #5 STARTING
 Calibrate camera status 0
 Camera resolution (15.88, 15.90)
 Camera distoration coefficients:
-0.0 -40.3 0.0 0.0 111.9 
+0.0 -51.5 0.0 0.0 -0.4 
 
 ---------------------------------------------
 CALIBRATE CAMERA REGRESSION TEST #6 STARTING
@@ -1256,50 +1264,50 @@ AUTO LOCATE LEAD REGRESSION TEST #5 STARTING
 ---------------------------------------------
 Auto locate lead status 0
 Lead number: 44, lead search locations: 
-1451, 672, 268, 66
-1451, 722, 268, 66
-1451, 772, 268, 65
-1451, 821, 268, 67
-1451, 872, 268, 63
-1451, 921, 268, 66
-1451, 971, 268, 66
-1451, 1021, 268, 69
-1451, 1070, 268, 70
-1451, 1120, 268, 70
-1451, 1170, 268, 70
-890, 399, 65, 271
-941, 399, 65, 271
-992, 399, 65, 271
-1043, 399, 62, 271
-1093, 399, 63, 271
-1142, 399, 67, 271
-1193, 399, 65, 271
-1240, 399, 70, 271
-1290, 399, 69, 271
-1339, 399, 72, 271
-1389, 399, 72, 271
-892, 1221, 63, 270
-941, 1221, 67, 270
-990, 1221, 68, 270
-1042, 1221, 65, 270
-1091, 1221, 67, 270
-1142, 1221, 67, 270
-1191, 1221, 68, 270
-1241, 1221, 68, 270
-1291, 1221, 69, 270
-1340, 1221, 73, 270
-1389, 1221, 75, 270
-631, 672, 269, 68
-631, 722, 269, 68
-631, 772, 269, 67
-631, 823, 269, 67
-631, 872, 269, 68
-631, 920, 269, 73
-631, 973, 269, 69
-631, 1024, 269, 69
-631, 1073, 269, 71
-631, 1120, 269, 77
-631, 1175, 269, 69
+1431, 672, 288, 66
+1431, 722, 288, 66
+1431, 772, 288, 65
+1431, 821, 288, 67
+1431, 872, 288, 63
+1431, 921, 288, 66
+1431, 971, 288, 66
+1431, 1021, 288, 69
+1431, 1070, 288, 70
+1431, 1120, 288, 70
+1431, 1170, 288, 70
+890, 399, 65, 291
+941, 399, 65, 291
+992, 399, 65, 291
+1043, 399, 62, 291
+1093, 399, 63, 291
+1142, 399, 67, 291
+1193, 399, 65, 291
+1240, 399, 70, 291
+1290, 399, 69, 291
+1339, 399, 72, 291
+1389, 399, 70, 291
+892, 1201, 63, 290
+941, 1201, 67, 290
+990, 1201, 68, 290
+1042, 1201, 65, 290
+1091, 1201, 67, 290
+1142, 1201, 67, 290
+1191, 1201, 68, 290
+1241, 1201, 68, 290
+1291, 1201, 71, 290
+1340, 1201, 73, 290
+1389, 1201, 75, 290
+631, 672, 289, 68
+631, 722, 289, 68
+631, 772, 289, 67
+631, 823, 289, 67
+631, 872, 289, 68
+631, 920, 289, 73
+631, 973, 289, 69
+631, 1024, 289, 69
+631, 1073, 289, 71
+631, 1120, 289, 77
+631, 1175, 289, 69
 
 ---------------------------------------------
 AUTO LOCATE LEAD REGRESSION TEST #6 STARTING

@@ -11,7 +11,7 @@ void TestMatchTmpl_1() {
     PR_LRN_TEMPLATE_RPY stLrnRpy;
 
     stLrnCmd.matInputImg = cv::imread("./data/TestOCV.png");
-    stLrnCmd.enAlgorithm = PR_MATCH_TMPL_ALGORITHM::SQUARE_DIFF;
+    stLrnCmd.enAlgorithm = PR_MATCH_TMPL_ALGORITHM::SQUARE_DIFF_NORMED;
     stLrnCmd.rectROI = cv::Rect(311, 818, 180, 61);
     cv::Mat matMask = cv::Mat::ones(stLrnCmd.rectROI.size(), CV_8UC1) * 255;
     cv::rectangle(matMask, cv::Rect(10, 10, 160, 30), cv::Scalar(0), CV_FILLED);
@@ -22,7 +22,7 @@ void TestMatchTmpl_1() {
     PR_MATCH_TEMPLATE_CMD stSrchCmd;
     PR_MATCH_TEMPLATE_RPY stSrchRpy;
     stSrchCmd.matInputImg = cv::imread("./data/TestOCV.png");
-    stSrchCmd.enAlgorithm = PR_MATCH_TMPL_ALGORITHM::SQUARE_DIFF;
+    stSrchCmd.enAlgorithm = PR_MATCH_TMPL_ALGORITHM::SQUARE_DIFF_NORMED;
     stSrchCmd.enMotion = PR_OBJECT_MOTION::TRANSLATION;
     stSrchCmd.rectSrchWindow = cv::Rect(223, 1035, 339, 216);
     stSrchCmd.nRecordId = stLrnRpy.nRecordId;
