@@ -2877,3 +2877,52 @@ void ConvertBaseParamCsvToYml() {
         fs.release();
     }
 }
+
+void Test3DRebase() {
+    std::string strWorkingFolder("./data/Test 3D Rebase/");
+    cv::Mat matHeight = readMatFromCsvFile(strWorkingFolder + "Final_Height.csv");
+    if (matHeight.empty()) {
+        std::cout << "Failed to read height from " << strWorkingFolder + "Final_Height.csv" << std::endl;
+        return;
+    }
+
+    cv::Mat matRed = cv::imread(strWorkingFolder + "51.bmp", cv::IMREAD_GRAYSCALE);
+    cv::Mat matGreen = cv::imread(strWorkingFolder + "52.bmp", cv::IMREAD_GRAYSCALE);
+    cv::Mat matBlue = cv::imread(strWorkingFolder + "53.bmp", cv::IMREAD_GRAYSCALE);
+    if (matRed.empty() || matGreen.empty() || matBlue.empty()) {
+        std::cout << "Failed to read images from " << strWorkingFolder << std::endl;
+        return;
+    }
+
+    VectorOfMat vecChannels{matBlue, matGreen, matRed};
+    cv::Mat matPseudoColorImage;
+    cv::merge(vecChannels, matPseudoColorImage);
+
+    // Simulate the process to get global base
+    cv::Mat matBaseROI(matPseudoColorImage, cv::Rect(574, 1752, 301, 123));
+    cv::Scalar baseColor = cv::mean(matBaseROI);
+
+    cv::imwrite(strWorkingFolder + "MergedColorImage.png", matPseudoColorImage);
+
+    cv::Rect rectROI(434, 1055, 462, 642);
+    PR_REBASE_3D_HEIGHT_CMD stCmd;
+    PR_REBASE_3D_HEIGHT_RPY stRpy;
+    stCmd.matHeight = cv::Mat(matHeight, rectROI);
+    stCmd.matPickBaseImg = cv::Mat(matPseudoColorImage, rectROI);
+    stCmd.scalarBaseColor = baseColor;
+    stCmd.nBaseColorDiff = 20;
+    stCmd.nBaseGrayDiff = 20;
+    stCmd.fBaseHRatioStart = 0.2f;
+    stCmd.fBaseHRatioEnd = 0.8f;
+
+    saveMatToCsv(stCmd.matHeight, strWorkingFolder + "OriginalHeight.csv");
+
+    PR_Rebase3DHeight(&stCmd, &stRpy);
+    if (stRpy.enStatus != VisionStatus::OK) {
+        std::cout << "Failed to do 3D rebase" << std::endl;
+        return;
+    }
+    
+    saveMatToCsv(stRpy.matHeight, strWorkingFolder + "RebasedHeight.csv");
+    cv::imwrite(strWorkingFolder + "ResultImage.png", stRpy.matResultImg);
+}

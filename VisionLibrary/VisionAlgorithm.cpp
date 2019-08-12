@@ -1621,6 +1621,9 @@ VisionStatus VisionAlgorithm::_writeDeviceRecord(PR_LRN_DEVICE_RPY *pLrnDeviceRp
     if (LogCaseCalc3DHeightDiff::StaticGetFolderPrefix() == strFolderPrefix)
         return std::make_unique<LogCaseCalc3DHeightDiff>(strLocalPath, true);
 
+    if (LogCaseRebase3DHeight::StaticGetFolderPrefix() == strFolderPrefix)
+        return std::make_unique<LogCaseRebase3DHeight>(strLocalPath, true);
+
     static String msg = strFolderPrefix + " is not handled in " + __FUNCTION__;
     throw std::exception(msg.c_str());
 }
@@ -7369,6 +7372,72 @@ VisionStatus VisionAlgorithm::_findLineByCaliper(const cv::Mat &matInputImg, con
 
     FINISH_LOGCASE;
     MARK_FUNCTION_END_TIME;
+    return pstRpy->enStatus;
+}
+
+/*static*/ VisionStatus VisionAlgorithm::rebase3DHeight(const PR_REBASE_3D_HEIGHT_CMD* const pstCmd, PR_REBASE_3D_HEIGHT_RPY* const pstRpy, bool bReplay /*= false*/) {
+    assert(pstCmd != nullptr && pstRpy != nullptr);
+    if (pstCmd->matHeight.empty()) {
+        WriteLog("The input height matrix is empty.");
+        pstRpy->enStatus = VisionStatus::INVALID_PARAM;
+        return pstRpy->enStatus;
+    }
+
+    if (pstCmd->matPickBaseImg.empty()) {
+        WriteLog("The pick base image is empty.");
+        pstRpy->enStatus = VisionStatus::INVALID_PARAM;
+        return pstRpy->enStatus;
+    }
+
+    if (pstCmd->matHeight.size() != pstCmd->matPickBaseImg.size()) {
+        std::stringstream ss;
+        ss << "The size of height " << pstCmd->matHeight.size()  << " not match with pick base image size " <<
+            pstCmd->matHeight.size();
+        WriteLog(ss.str());
+        pstRpy->enStatus = VisionStatus::INVALID_PARAM;
+        return pstRpy->enStatus;
+    }
+
+    if (pstCmd->fBaseHRatioStart < 0.f || pstCmd->fBaseHRatioEnd > 1.f || pstCmd->fBaseHRatioStart >= pstCmd->fBaseHRatioEnd) {
+        std::stringstream ss;
+        ss << "The base height start ratio " << pstCmd->fBaseHRatioStart  << " and end ratio " << pstCmd->fBaseHRatioEnd << 
+            " are invalid.";
+        WriteLog(ss.str());
+        pstRpy->enStatus = VisionStatus::INVALID_PARAM;
+        return pstRpy->enStatus;
+    }
+
+    MARK_FUNCTION_START_TIME;
+    SETUP_LOGCASE(LogCaseRebase3DHeight);
+
+    pstRpy->matHeight = pstCmd->matHeight;
+
+    std::vector<int> vecValue(3);
+    vecValue[0] = ToInt32(pstCmd->scalarBaseColor[0]); vecValue[1] = ToInt32(pstCmd->scalarBaseColor[1]); vecValue[2] = ToInt32(pstCmd->scalarBaseColor[2]);
+    UInt32 nBasePointCount = 0;
+    auto matBaseMask = _pickColor(vecValue, pstCmd->matPickBaseImg, pstCmd->nBaseColorDiff, pstCmd->nBaseGrayDiff, nBasePointCount);
+    if (nBasePointCount < 10) {
+        std::stringstream ss;
+        ss << "Found base point count " << nBasePointCount << " is not enough to fit a surface";
+        WriteLog(ss.str());
+        pstRpy->enStatus = VisionStatus::CALC_3D_HEIGHT_NO_BASE_POINT;
+        FINISH_LOGCASE;
+        return pstRpy->enStatus;
+    }
+
+    Unwrap::rebase3DHeight(pstCmd, matBaseMask, pstRpy);
+
+    if (!isAutoMode()) {
+        pstRpy->matResultImg = pstCmd->matPickBaseImg.clone();
+        pstRpy->matResultImg.setTo(YELLOW_SCALAR, matBaseMask);
+    }
+
+    if (ConfigInstance->getDebugMode() == PR_DEBUG_MODE::SHOW_IMAGE)
+        showImage("Base Mask", matBaseMask);
+
+    FINISH_LOGCASE;
+    MARK_FUNCTION_END_TIME;
+
     return pstRpy->enStatus;
 }
 

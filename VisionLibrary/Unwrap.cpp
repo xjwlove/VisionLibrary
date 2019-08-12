@@ -2318,7 +2318,7 @@ static inline cv::Mat calcOrder5BezierCoeff(const cv::Mat &matU) {
     }
 
     if (vecXt.size() < 3 || vecYt.size() < 3) {
-        pstRpy->enStatus = VisionStatus::CALC_3D_HEIGHT_DIFF_NO_BASE_POINT;
+        pstRpy->enStatus = VisionStatus::CALC_3D_HEIGHT_NO_BASE_POINT;
         WriteLog("No base points to calculate 3D height difference, all base points are masked or are NAN.");
         return;
     }
@@ -2378,6 +2378,57 @@ static inline cv::Mat calcOrder5BezierCoeff(const cv::Mat &matU) {
     pstRpy->enStatus = VisionStatus::OK;
 
     TimeLog::GetInstance()->addTimeLog("Calculate height difference take: ", stopWatch.Span());
+}
+
+/*static*/ void Unwrap::rebase3DHeight(const PR_REBASE_3D_HEIGHT_CMD* const pstCmd, const cv::Mat &matBaseMask, PR_REBASE_3D_HEIGHT_RPY* const pstRpy) {
+    CStopWatch stopWatch;
+    cv::Mat matHeightROI = pstCmd->matHeight;
+
+    AOI::Vision::VectorOfPoint vecPtLocations;
+    cv::findNonZero(matBaseMask, vecPtLocations);
+    TimeLog::GetInstance()->addTimeLog("cv::findNonZero.", stopWatch.Span());
+
+    std::sort(vecPtLocations.begin(), vecPtLocations.end(), [&matHeightROI](const cv::Point &pt1, const cv::Point &pt2) {
+        return matHeightROI.at<float>(pt1) < matHeightROI.at<float>(pt2);
+    });
+    TimeLog::GetInstance()->addTimeLog("Sort height.", stopWatch.Span());
+
+    std::vector<float> vecXt, vecYt, vecHeightTmp;
+    auto ROWS = matHeightROI.rows;
+    auto COLS = matHeightROI.cols;
+    cv::Mat matX, matY;
+    CalcUtils::meshgrid<DATA_TYPE>(1.f, 1.f, ToFloat(COLS), 1.f, 1.f, ToFloat(ROWS), matX, matY);
+
+    AOI::Vision::VectorOfPoint vecTrimedLocations(vecPtLocations.begin() + ToInt32(vecPtLocations.size() * pstCmd->fBaseHRatioStart),
+        vecPtLocations.begin() + ToInt32(vecPtLocations.size() * pstCmd->fBaseHRatioEnd));
+    vecXt.reserve(vecXt.size() + vecTrimedLocations.size());
+    vecYt.reserve(vecYt.size() + vecTrimedLocations.size());
+    vecHeightTmp.reserve(vecHeightTmp.size() + vecTrimedLocations.size());
+    for (const auto &point : vecTrimedLocations) {
+        vecXt.push_back(matX.at<float>(point));
+        vecYt.push_back(matY.at<float>(point));
+        vecHeightTmp.push_back(matHeightROI.at<float>(point));
+    }
+
+    cv::Mat matK;
+    {
+        cv::Mat matXX;
+        matXX.push_back(cv::Mat(vecXt).reshape(1, 1));
+        matXX.push_back(cv::Mat(vecYt).reshape(1, 1));
+        matXX.push_back(cv::Mat(cv::Mat::ones(1, ToInt32(vecHeightTmp.size()), CV_32FC1))); // cv::Mat::ones return MatExpr, need to convert to Mat
+        cv::transpose(matXX, matXX);
+        cv::Mat matYY(vecHeightTmp);
+        cv::solve(matXX, matYY, matK, cv::DecompTypes::DECOMP_SVD);
+    }
+
+    TimeLog::GetInstance()->addTimeLog("Calculate base parameters.", stopWatch.Span());
+
+    float k1 = matK.at<float>(0);
+    float k2 = matK.at<float>(1);
+    float k3 = matK.at<float>(2);
+
+    pstRpy->matHeight = matHeightROI - (matX * k1 + matY * k2 + k3);
+    pstRpy->enStatus = VisionStatus::OK;
 }
 
 /*static*/ void Unwrap::calcMTF(const PR_CALC_MTF_CMD *const pstCmd, PR_CALC_MTF_RPY *const pstRpy) {
@@ -4281,7 +4332,7 @@ void _saveAsGray(const cv::Mat &matHeight, const std::string &strFilePath) {
     }
 
     if (vecXt.size() < 3 || vecYt.size() < 3) {
-        pstRpy->enStatus = VisionStatus::CALC_3D_HEIGHT_DIFF_NO_BASE_POINT;
+        pstRpy->enStatus = VisionStatus::CALC_3D_HEIGHT_NO_BASE_POINT;
         WriteLog("No base points to calculate 3D height difference, all base points are masked or are NAN.");
         return;
     }

@@ -35,6 +35,7 @@ void ConvertBaseParamCsvToYml();
 void TestCalc3DHeight_With_NormalCalibParam();
 void TestCalc3DHeight_With_IntegrateCalibParam();
 void TestCalibDlpOffset_1();
+void Test3DRebase();
 
 void TestCalcMTF();
 void TestCalcPD();

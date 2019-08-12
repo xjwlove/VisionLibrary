@@ -14,8 +14,11 @@
  * Copyright (c) 2016-2018, Xiao Shengguang.  All rights reserved.
  ****************************************************************************/
 
+//2019-08-12 (XSG) Add PR_Rebase3DHeight function.
+#define AOI_VISION_VERSION          "1.00.75"
+
 //2019-08-08 (XSG) Match template using normalized sqr diff if without mask.
-#define AOI_VISION_VERSION          "1.00.74"
+//#define AOI_VISION_VERSION          "1.00.74"
 
 //2019-08-05 (XSG) Support use GPU to do height to gray convert.
 //#define AOI_VISION_VERSION          "1.00.73"
