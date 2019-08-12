@@ -680,7 +680,7 @@ int _tmain(int argc, _TCHAR* argv[])
     std::cout << "Floor of " << fTest << " is " << fFloorResult << std::endl;
 
     PR_Init();
-    PR_SetDebugMode(PR_DEBUG_MODE::LOG_FAIL_CASE);
+    PR_SetDebugMode(PR_DEBUG_MODE::LOG_ALL_CASE);
 
     //PR_RunLogCase("./Vision/LogCase/CalibrateCamera_2018_12_21_08_03_14_131.logcase");
     //TestTemplate();
@@ -801,7 +801,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
     //TestCalc4DLPHeight();
     //TestCalc4DLPHeightOnePass();
-    TestCalc4DLPHeight_SimulateMachine();
+    //TestCalc4DLPHeight_SimulateMachine();
     //TestCalc4DLPHeight_10_Images_SimulateMachine();
     //TestSimulateDlpHeightOffsetCalib();
     //CompareHeightSame();
@@ -811,6 +811,8 @@ int _tmain(int argc, _TCHAR* argv[])
     //CompareMask();
     //TestMergeHeightMax();
     //TestSortIndexValue();
+
+    Test3DRebase();
 
     //TestInsp3DSolder();
     //TestInsp3DSolder_1();

@@ -1466,6 +1466,27 @@ struct PR_CALC_3D_HEIGHT_DIFF_RPY {
     float                   fHeightDiff;
 };
 
+struct PR_REBASE_3D_HEIGHT_CMD {
+    PR_REBASE_3D_HEIGHT_CMD() :
+        nBaseColorDiff   (20),
+        nBaseGrayDiff    (20),
+        fBaseHRatioStart (0.2f),
+        fBaseHRatioEnd   (0.8f) {}
+    cv::Mat                 matHeight;
+    cv::Mat                 matPickBaseImg;
+    cv::Scalar              scalarBaseColor;
+    Int16                   nBaseColorDiff;
+    Int16                   nBaseGrayDiff;
+    float                   fBaseHRatioStart;     //If fBaseHRatioStart = 0.2, the lower 30% points in the base will be removed for fitting.
+    float                   fBaseHRatioEnd;       //If fEffectHRatioEnd = 0.8, the upper 30% of points in the base will be removed for fitting.
+};
+
+struct PR_REBASE_3D_HEIGHT_RPY {
+    VisionStatus            enStatus;
+    cv::Mat                 matHeight;
+    cv::Mat                 matResultImg;
+};
+
 struct PR_INSP_3D_SOLDER_CMD {
     PR_INSP_3D_SOLDER_CMD() :
         nBaseColorDiff              (20),

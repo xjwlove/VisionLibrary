@@ -571,6 +571,13 @@ PR_FUNCTION_ENTRY
 PR_FUNCTION_EXIT
 }
 
+VisionAPI VisionStatus PR_Rebase3DHeight(const PR_REBASE_3D_HEIGHT_CMD* const pstCmd, PR_REBASE_3D_HEIGHT_RPY* const pstRpy)
+{
+PR_FUNCTION_ENTRY
+    return VisionAlgorithm::rebase3DHeight(pstCmd, pstRpy);
+PR_FUNCTION_EXIT
+}
+
 VisionAPI VisionStatus PR_Insp3DSolder(const PR_INSP_3D_SOLDER_CMD *pstCmd, PR_INSP_3D_SOLDER_RPY *const pstRpy)
 {
 PR_FUNCTION_ENTRY

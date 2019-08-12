@@ -33,7 +33,7 @@ namespace
     }
 }
 
-LogCase::LogCase(const String &strPath, bool bReplay) :_strLogCasePath(strPath), _bReplay(bReplay) {
+LogCase::LogCase(const String &strPath, bool bReplay) : _strLogCasePath(strPath), _bReplay(bReplay) {
     if (bReplay)
         _strLogCasePath = strPath;
 }
@@ -2970,6 +2970,78 @@ VisionStatus LogCaseCalc3DHeightDiff::RunLogCase() {
 
     VisionStatus enStatus = VisionStatus::OK;
     enStatus = VisionAlgorithm::calc3DHeightDiff(&stCmd, &stRpy, true);
+    WriteRpy(&stRpy);
+    return enStatus;
+}
+
+/*static*/ String LogCaseRebase3DHeight::StaticGetFolderPrefix() {
+    return "Rebase3DHeight";
+}
+
+VisionStatus LogCaseRebase3DHeight::WriteCmd(const PR_REBASE_3D_HEIGHT_CMD *const pstCmd) {
+    if (!_bReplay) {
+        _strLogCasePath = _generateLogCaseName(GetFolderPrefix());
+        bfs::path dir(_strLogCasePath);
+        bfs::create_directories(dir);
+    }
+
+    CSimpleIni ini(false, false, false);
+    auto cmdRpyFilePath = _strLogCasePath + _CMD_RPY_FILE_NAME;
+    ini.LoadFile(cmdRpyFilePath.c_str());
+
+    ini.SetValue(_CMD_SECTION.c_str(), _strKeyBaseColor.c_str(), _formatScalar(pstCmd->scalarBaseColor).c_str());
+    ini.SetLongValue(_CMD_SECTION.c_str(), _strKeyBaseColorDiff.c_str(), pstCmd->nBaseColorDiff);
+    ini.SetLongValue(_CMD_SECTION.c_str(), _strKeyBaseGrayDiff.c_str(), pstCmd->nBaseGrayDiff);
+    ini.SetDoubleValue(_CMD_SECTION.c_str(), _strKeyHRatioStart.c_str(), pstCmd->fBaseHRatioStart);
+    ini.SetDoubleValue(_CMD_SECTION.c_str(), _strKeyHRatioEnd.c_str(), pstCmd->fBaseHRatioEnd);
+    ini.SaveFile(cmdRpyFilePath.c_str());
+
+    cv::FileStorage fs(_strLogCasePath + _strHeightFileName, cv::FileStorage::WRITE);
+    cv::write(fs, "Height", pstCmd->matHeight);
+    fs.release();
+
+    cv::imwrite(_strLogCasePath + _IMAGE_NAME, pstCmd->matPickBaseImg);
+
+    return VisionStatus::OK;
+}
+
+VisionStatus LogCaseRebase3DHeight::WriteRpy(const PR_REBASE_3D_HEIGHT_RPY *const pstRpy) {
+    CSimpleIni ini(false, false, false);
+    auto cmdRpyFilePath = _strLogCasePath + _CMD_RPY_FILE_NAME;
+    ini.LoadFile(cmdRpyFilePath.c_str());
+    ini.SetLongValue(_RPY_SECTION.c_str(), _strKeyStatus.c_str(), ToInt32(pstRpy->enStatus));
+    ini.SaveFile(cmdRpyFilePath.c_str());
+
+    if (! pstRpy->matResultImg.empty())
+        cv::imwrite(_strLogCasePath + _RESULT_IMAGE_NAME, pstRpy->matResultImg);
+
+    _zip();
+    return VisionStatus::OK;
+}
+
+VisionStatus LogCaseRebase3DHeight::RunLogCase() {
+    PR_REBASE_3D_HEIGHT_CMD stCmd;
+    PR_REBASE_3D_HEIGHT_RPY stRpy;
+
+    CSimpleIni ini(false, false, false);
+    auto cmdRpyFilePath = _strLogCasePath + _CMD_RPY_FILE_NAME;
+    ini.LoadFile(cmdRpyFilePath.c_str());
+   
+    stCmd.scalarBaseColor = _parseScalar(ini.GetValue(_CMD_SECTION.c_str(), _strKeyBaseColor.c_str(), _DEFAULT_SCALAR.c_str()));
+    stCmd.nBaseColorDiff = ToInt16(ini.GetLongValue(_CMD_SECTION.c_str(), _strKeyBaseColorDiff.c_str(), 20));
+    stCmd.nBaseGrayDiff = ToInt16(ini.GetLongValue(_CMD_SECTION.c_str(), _strKeyBaseGrayDiff.c_str(), 20));
+    stCmd.fBaseHRatioStart = ToFloat(ini.GetDoubleValue(_CMD_SECTION.c_str(), _strKeyHRatioStart.c_str(), 0.2));
+    stCmd.fBaseHRatioEnd = ToFloat(ini.GetDoubleValue(_CMD_SECTION.c_str(), _strKeyHRatioEnd.c_str(), 0.8));
+
+    cv::FileStorage fs(_strLogCasePath + _strHeightFileName, cv::FileStorage::READ);
+    cv::FileNode fileNode = fs["Height"];
+    cv::read(fileNode, stCmd.matHeight, cv::Mat());
+    fs.release();
+
+    stCmd.matPickBaseImg = cv::imread(_strLogCasePath + _IMAGE_NAME);
+
+    VisionStatus enStatus = VisionStatus::OK;
+    enStatus = VisionAlgorithm::rebase3DHeight(&stCmd, &stRpy, true);
     WriteRpy(&stRpy);
     return enStatus;
 }
