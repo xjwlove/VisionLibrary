@@ -904,11 +904,16 @@ static void TestGetBaseFromGrid_1() {
     const int ROWS = 2048, COLS = 2040;
 
     cv::Mat matInput = cv::Mat::ones(ROWS, COLS, CV_32FC1);
-    for (int i = 0; i < 200000; ++ i) {
+    float fSumOfNoise = 0.f;
+    for (int i = 0; i < 10000; ++ i) {
         int row = std::rand () % ROWS;
         int col = std::rand () % COLS;
-        matInput.at<float>(row, col) = float(std::rand () % 500) / 100.f - 2.5f;
+        float fRandomNoise = float(std::rand() % 500) / 100.f - 1.f;
+        fSumOfNoise += fRandomNoise;
+        matInput.at<float>(row, col) += fRandomNoise;
     }
+
+    std::cout << "Total noise " << fSumOfNoise << std::endl;
 
     cv::cuda::GpuMat matInputGpu, matBaseGpu(ROWS, COLS, CV_32FC1);
     matInputGpu.upload(matInput);
@@ -922,8 +927,8 @@ static void TestGetBaseFromGrid_1() {
     cv::Mat matBase;
     matBaseGpu.download(matBase);
     std::cout << std::fixed << std::setprecision(2);
-    for (int row = 0; row < ROWS; row += 200) {
-        for(int col = 0; col < COLS; col += 200) {
+    for (int row = 0; row < ROWS; row += 204) {
+        for(int col = 0; col < COLS; col += 205) {
             std::cout << matBase.at<float>(row, col) << " ";
         }
         std::cout << std::endl;

@@ -924,7 +924,7 @@ void kernel_get_base_from_grid(
     if (ii >= gridX || jj >= gridY)
         return;
 
-    bool bDebug = false; //ii == 0 && jj == 0;
+    bool bDebug = ii == 1 && jj == 9;
 
     const int GRID_INDEX = jj * gridX + ii;
 
@@ -956,21 +956,48 @@ void kernel_get_base_from_grid(
         }
     }
 
-    device_kernel_qsort(myBuffer, count);
+    float fMin = 1000.f;
+    float fSum = 0.f;
+    float fSumCount = 0.f;
+    for (int i = 0; i < count; i += 32) {
+        if (myBuffer[i] < fMin)
+            fMin = myBuffer[i];
+        fSum += myBuffer[i];
+        fSumCount += 1;
+    }
 
-    int lenxy = ceil(gridSizeX) * ceil(gridSizeY) / PICK_POINT_INTERVAL / PICK_POINT_INTERVAL;
+    float fAverage = fSum / fSumCount;
+    if (fMin > fAverage - 0.1f)
+        fMin = fAverage - 0.1f;
+
+    int trimmedCount = 0;
+    for (int i = 0; i < count; ++i) {
+        if (fMin < myBuffer[i] && myBuffer[i] <= fAverage)
+            myBuffer[trimmedCount++] = myBuffer[i];
+    }
+
+    device_kernel_qsort(myBuffer, trimmedCount);
+
+    //int lenxy = ceil(gridSizeX) * ceil(gridSizeY) / PICK_POINT_INTERVAL / PICK_POINT_INTERVAL;
     if (bDebug) {
-        printf("Count = %d, lenxy = %d\n", count, lenxy);
+        printf("Count = %d, trimmedCount = %d\n", count, trimmedCount);
+        printf("fSum = %f, fSumCount = %f\n", fSum, fSumCount);
+        printf("fMin = %f, fAverage = %f\n", fMin, fAverage);
     }
 
     float* betatmp3 = buffer1 + 256 * GRID_INDEX;
     int pickCount = 0;
-    for (int i = lenxy / 100; i < lenxy; i += lenxy / 100) {
+    int pickStep = trimmedCount / 50;
+    if (trimmedCount <= 50) {
+        pickStep = 1;
+    }
+
+    for (int i = trimmedCount / 100; i < trimmedCount; i += pickStep) {
         betatmp3[pickCount++] = myBuffer[i];
     }
 
     if (bDebug) {
-        printf("Picked out point after sort\n");
+        printf("Picked out point count %d after sort, values:\n", pickCount);
         for (int i = 0; i < pickCount; i ++) {
             printf("%.2f ", betatmp3[i]);
         }
@@ -983,7 +1010,7 @@ void kernel_get_base_from_grid(
         betaDiff[i] = betatmp3[i] - betatmp3[i - 1];
 
     int checkStart = 0;
-    for (int i = 2; i < 50; ++i) {
+    for (int i = 2; i < 30 && i < pickCount; ++i) {
         if (betaDiff[i] < 0.1f && betaDiff[i + 1] < 0.1 && betaDiff[i + 2] < 0.1 && betaDiff[i + 3] < 0.1) {
             checkStart = i;
             break;
@@ -996,7 +1023,7 @@ void kernel_get_base_from_grid(
 
     int sumCount = 0; float sum = 0.f;
     if (checkStart != 0) {
-        for (int i = checkStart; i < checkStart + 8; ++i) {
+        for (int i = checkStart; i < checkStart + 8 && i < pickCount; ++i) {
             if (betaDiff[i] < 0.1f) {
                 sumCount++;
                 sum += betatmp3[i];
@@ -1004,13 +1031,18 @@ void kernel_get_base_from_grid(
         }
     }
     else {
-        for (int i = 2; i < 10; ++i) {
+        for (int i = 2; i < 10 && i < pickCount; ++i) {
             sumCount++;
             sum += betatmp3[i];
         }
     }
 
-    float meanValue = sum / sumCount;
+    float meanValue = 0.f;
+    if (sumCount > 0.f)
+        meanValue = sum / sumCount;
+    else {
+        printf("ii = %d jj = %d failed to calculate base\n", ii, jj);
+    }
 
     if (bDebug) {
         printf("sum = %.2f, sumCount = %d, meanValue = %.2f\n", sum, sumCount, meanValue);

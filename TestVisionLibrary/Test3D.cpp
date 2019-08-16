@@ -1743,7 +1743,7 @@ void TestCalc4DLPHeight_SimulateMachine()
 
     std::cout << "PR_SetDlpParamsToGpu success" << std::endl;
 
-    std::string strParentFolder = "C:/Data/2019_07_15_Try_10_Dlp_Images/Dlp_12_Images_Scan_Result/Work_Flow_Images/";
+    std::string strParentFolder = "C:/Data/2019_08_08_Multi_Board_Test_Result/WorkFlowImages/";
     {
         std::string strImageFolder = strParentFolder + "10/";
         std::string strResultFolder = strParentFolder + "Frame_10_Result/";
