@@ -237,6 +237,39 @@ void TestTmplMatch_7() {
         cv::imwrite("./data/TestSrchTmpl_7/SrchResult.png", stSrchRpy.matResultImg);
 }
 
+void TestTmplMatch_8() {
+    std::cout << std::endl << "------------------------------------------";
+    std::cout << std::endl << "MATCH TEMPLATE REGRESSION TEST #8 STARTING";
+    std::cout << std::endl << "------------------------------------------";
+    std::cout << std::endl;
+
+    PR_LRN_TEMPLATE_CMD stLrnCmd;
+    PR_LRN_TEMPLATE_RPY stLrnRpy;
+
+    stLrnCmd.matInputImg = cv::imread("./data/TestSrchTmpl_8/Tmpl.png");
+    stLrnCmd.enAlgorithm = PR_MATCH_TMPL_ALGORITHM::SQUARE_DIFF_NORMED;
+    stLrnCmd.rectROI = cv::Rect(0, 0, stLrnCmd.matInputImg.cols, stLrnCmd.matInputImg.rows);
+
+    PR_LrnTmpl(&stLrnCmd, &stLrnRpy);
+    if (stLrnRpy.enStatus != VisionStatus::OK) {
+        std::cout << "Failed to learn template." << std::endl;
+        return;
+    }
+
+    PR_MATCH_TEMPLATE_CMD stSrchCmd;
+    PR_MATCH_TEMPLATE_RPY stSrchRpy;
+    stSrchCmd.matInputImg = cv::imread("./data/TestSrchTmpl_8/image.png");
+    stSrchCmd.enAlgorithm = PR_MATCH_TMPL_ALGORITHM::SQUARE_DIFF_NORMED;
+    stSrchCmd.enMotion = PR_OBJECT_MOTION::TRANSLATION;
+    stSrchCmd.rectSrchWindow = cv::Rect(cv::Point(264, 166), cv::Point(792, 498));
+    stSrchCmd.nRecordId = stLrnRpy.nRecordId;
+
+    PR_MatchTmpl(&stSrchCmd, &stSrchRpy);
+    PrintMatchTmplRpy(stSrchRpy);
+    if (!stSrchRpy.matResultImg.empty())
+        cv::imwrite("./data/TestSrchTmpl_8/SrchResult.png", stSrchRpy.matResultImg);
+}
+
 void TestTmplMatch() {
     TestTmplMatch_1();
     TestTmplMatch_2();
@@ -245,6 +278,7 @@ void TestTmplMatch() {
     TestTmplMatch_5();
     TestTmplMatch_6();
     TestTmplMatch_7();
+    TestTmplMatch_8();
 }
 
 static void PrintFiducialMarkResult(const PR_SRCH_FIDUCIAL_MARK_RPY &stRpy) {
