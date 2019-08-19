@@ -8738,15 +8738,40 @@ VisionStatus VisionAlgorithm::_findLineByCaliper(const cv::Mat &matInputImg, con
     auto maxScoreIndex = iterMaxScore - vecCorrelation.begin();
     cv::Point ptTarget = vecResultPos[maxScoreIndex];
     auto ptrRecordPtr = vecRecordPtr[maxScoreIndex];
-    cv::Rect rectTarget(ptTarget.x - (ptrRecordPtr->getBigTmpl().cols + 1) / 2, ptTarget.y - (ptrRecordPtr->getBigTmpl().rows + 1) / 2, ptrRecordPtr->getBigTmpl().cols, ptrRecordPtr->getBigTmpl().rows);
-    cv::Mat matBigTarget(matGray, rectTarget);
+    cv::Rect rectTarget(ptTarget.x - ptrRecordPtr->getBigTmpl().cols / 2, ptTarget.y - ptrRecordPtr->getBigTmpl().rows / 2,
+        ptrRecordPtr->getBigTmpl().cols, ptrRecordPtr->getBigTmpl().rows);
+    CalcUtils::adjustRectROI(rectTarget, matGray);
+    cv::Mat matBigTarget;
+    try {
+        matBigTarget = cv::Mat(matGray, rectTarget);
+    }
+    catch (std::exception& e) {
+        std::stringstream ss;
+        ss << "Exception captured: " << e.what();
+        ss << "rectTarget " << rectTarget << " out of size of image " << matGray.size();
+        WriteLog(ss.str());
+        pstRpy->enStatus = VisionStatus::OCV_MATCH_SCORE_UNDER_LIMIT;
+        return pstRpy->enStatus;
+    }
+
     auto vecCharRects = ptrRecordPtr->getCharRects();
     const int nSrchRegionMargin = 5;
     for (size_t i = 0; i < vecCharRects.size(); ++ i) {
         auto rectChar = vecCharRects[i];
         auto rectCharSrchWindow = CalcUtils::resizeRect(rectChar, cv::Size(rectChar.width + nSrchRegionMargin * 2, rectChar.height + nSrchRegionMargin * 2));
         CalcUtils::adjustRectROI(rectCharSrchWindow, matBigTarget);
-        cv::Mat matCharSrch(matBigTarget, rectCharSrchWindow);
+        cv::Mat matCharSrch;
+        try {
+            matCharSrch = cv::Mat(matBigTarget, rectCharSrchWindow);
+        }catch (std::exception& e) {
+            std::stringstream ss;
+            ss << "Exception captured: " << e.what();
+            ss << "rectCharSrchWindow " << rectCharSrchWindow << " out of size of image " << matBigTarget.size();
+            WriteLog(ss.str());
+            pstRpy->enStatus = VisionStatus::OCV_MATCH_SCORE_UNDER_LIMIT;
+            return pstRpy->enStatus;
+        }
+
         if (ConfigInstance->getDebugMode() == PR_DEBUG_MODE::SHOW_IMAGE)
             showImage("Char Srch Image", matCharSrch);
         cv::Mat matCharTmpl(ptrRecordPtr->getBigTmpl(), rectChar);
