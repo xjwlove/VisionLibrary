@@ -1743,7 +1743,7 @@ void TestCalc4DLPHeight_SimulateMachine()
 
     std::cout << "PR_SetDlpParamsToGpu success" << std::endl;
 
-    std::string strParentFolder = "C:/Data/2019_07_15_Try_10_Dlp_Images/Dlp_12_Images_Scan_Result/Work_Flow_Images/";
+    std::string strParentFolder = "C:/Data/2019_08_08_Multi_Board_Test_Result/WorkFlowImages/";
     {
         std::string strImageFolder = strParentFolder + "10/";
         std::string strResultFolder = strParentFolder + "Frame_10_Result/";
@@ -2254,9 +2254,9 @@ void TestScanImage() {
 }
 
 void CompareHeightSame() {
-    std::string strWorkingFolder("C:/Data/3D_20190408/PCBFOV20190104/Frame_1_Result/");
-    cv::Mat matHeight1 = readMatFromCsvFile(strWorkingFolder + "Final_Height_0.csv");
-    cv::Mat matHeight2 = readMatFromCsvFile(strWorkingFolder + "Final_Height.csv");
+    std::string strWorkingFolder("C:/Data/2019_08_08_Multi_Board_Test_Result/WorkFlowImages/");
+    cv::Mat matHeight1 = readMatFromCsvFile(strWorkingFolder + "Frame_10_Result/Final_Height.csv");
+    cv::Mat matHeight2 = readMatFromCsvFile(strWorkingFolder + "Frame_10_Result_After_Optimize/Final_Height.csv");
 
     if (matHeight1.size() != matHeight2.size()) {
         std::cout << "Height1 size " << matHeight1.size() << " not match height 2 size " << matHeight2.size() << std::endl;
