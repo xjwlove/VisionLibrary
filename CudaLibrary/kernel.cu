@@ -924,7 +924,7 @@ void kernel_get_base_from_grid(
     if (ii >= gridX || jj >= gridY)
         return;
 
-    bool bDebug = ii == 1 && jj == 9;
+    bool bDebug = false; // ii == 1 && jj == 9;
 
     const int GRID_INDEX = jj * gridX + ii;
 
@@ -967,8 +967,6 @@ void kernel_get_base_from_grid(
     }
 
     float fAverage = fSum / fSumCount;
-    if (fMin > fAverage - 0.1f)
-        fMin = fAverage - 0.1f;
 
     int trimmedCount = 0;
     for (int i = 0; i < count; ++i) {

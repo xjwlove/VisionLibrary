@@ -895,6 +895,12 @@ static void TestMergeHeightIntersect() {
     //matGpuH4.download(matCpuH4);
 }
 
+static void saveMatToCsv(const cv::Mat &matrix, std::string filename) {
+    std::ofstream outputFile(filename);
+    outputFile << cv::format(matrix, cv::Formatter::FMT_CSV);
+    outputFile.close();
+}
+
 static void TestGetBaseFromGrid_1() {
     std::cout << std::endl << "----------------------------------------------------------";
     std::cout << std::endl << "CUDA GET BASE FROM GRID INTERNAL TEST #1 STARTING";
@@ -904,16 +910,16 @@ static void TestGetBaseFromGrid_1() {
     const int ROWS = 2048, COLS = 2040;
 
     cv::Mat matInput = cv::Mat::ones(ROWS, COLS, CV_32FC1);
-    float fSumOfNoise = 0.f;
-    for (int i = 0; i < 10000; ++ i) {
-        int row = std::rand () % ROWS;
-        int col = std::rand () % COLS;
-        float fRandomNoise = float(std::rand() % 500) / 100.f - 1.f;
-        fSumOfNoise += fRandomNoise;
-        matInput.at<float>(row, col) += fRandomNoise;
+    for (int row = 0; row < ROWS; ++ row) {
+        for (int col = 0; col < COLS; ++col) {
+            float fRandomNoise = float(std::rand() % 500) / 500.f - 0.5f;
+            matInput.at<float>(row, col) += fRandomNoise;
+        }
     }
 
-    std::cout << "Total noise " << fSumOfNoise << std::endl;
+    //std::cout << "Total noise " << fSumOfNoise << std::endl;
+
+    //saveMatToCsv(matInput, "./data/BaseOneWithNoise.csv");
 
     cv::cuda::GpuMat matInputGpu, matBaseGpu(ROWS, COLS, CV_32FC1);
     matInputGpu.upload(matInput);
@@ -950,10 +956,11 @@ static void TestGetBaseFromGrid_2() {
     cv::Mat matInput = cv::Mat::ones(ROWS, COLS, CV_32FC1);
     cv::Mat matROI(matInput, cv::Range(512, 1536), cv::Range(512, 1536));
     matROI.setTo(2);
-    for (int i = 0; i < 200000; ++ i) {
-        int row = std::rand () % ROWS;
-        int col = std::rand () % COLS;
-        matInput.at<float>(row, col) = float(std::rand () % 500) / 100.f - 2.5f;
+    for (int row = 0; row < ROWS; ++ row) {
+        for (int col = 0; col < COLS; ++col) {
+            float fRandomNoise = float(std::rand() % 500) / 500.f - 0.5f;
+            matInput.at<float>(row, col) += fRandomNoise;
+        }
     }
 
     cv::cuda::GpuMat matInputGpu, matBaseGpu(ROWS, COLS, CV_32FC1);
