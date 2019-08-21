@@ -384,7 +384,7 @@ struct PR_FIND_LINE_CMD {
 };
 
 struct PR_FIND_LINE_RPY {
-    VisionStatus            enStatus;    
+    VisionStatus            enStatus;
     bool                    bReversedFit;   //If it is true, then the result is x = fSlope * y + fIntercept. Otherwise the line is y = fSlope * x + fIntercept.
     float                   fSlope;
     float                   fIntercept;

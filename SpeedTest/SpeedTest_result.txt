@@ -5,4 +5,34 @@ MATCH TEMPLATE SPEED TEST #1 STARTING
 ------------------------------------------
 Template size: [1910 x 1007]
 Search size: [2500 x 1500]
-Repeat 10 times. Total time: 383, average time: 38
+Repeat 10 times. Total time: 289, average time: 28
+
+--------------------------------------------------------
+TRANSPOSE WITHOUT PREPARED MEMORY SPEED TEST #1 STARTING
+--------------------------------------------------------
+Repeat 10 times. Total time: 150, average time: 15
+
+-----------------------------------------------------
+TRANSPOSE WITH PREPARED MEMORY SPEED TEST #1 STARTING
+-----------------------------------------------------
+Repeat 10 times. Total time: 76, average time: 7.6
+
+-------------------------------------------------------------
+CUDA TRANSPOSE WITHOUT PREPARED MEMORY SPEED TEST #1 STARTING
+-------------------------------------------------------------
+Repeat 10 times. Total time: 11, average time: 1.1
+
+----------------------------------------------------------
+CUDA TRANSPOSE WITH PREPARED MEMORY SPEED TEST #1 STARTING
+----------------------------------------------------------
+Repeat 10 times. Total time: 2, average time: 0.2
+
+-----------------------------------------------------
+ROTATE IMAGE 90 Degree of CV_8UC1 SPEED TEST #0 STARTING
+-----------------------------------------------------
+Repeat 10 times. Total time: 15, average time: 1.5
+
+-----------------------------------------------------
+ROTATE IMAGE 90 Degree of CV_32FC1 SPEED TEST #1 STARTING
+-----------------------------------------------------
+Repeat 10 times. Total time: 95, average time: 9.5

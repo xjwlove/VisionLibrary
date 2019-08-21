@@ -48,7 +48,7 @@ static void TransposeSpeedTest_2()
         cv::transpose(matImage, matResult);
     }
 
-    float totalTime = stopWatch.Now();
+    float totalTime = ToFloat(stopWatch.Now());
     auto averageTime = totalTime / REPEAT_TIME;
     std::cout << "Repeat " << REPEAT_TIME << " times. Total time: " << totalTime << ", average time: " << averageTime << std::endl;
 }
@@ -87,7 +87,7 @@ static void TransposeSpeedTest_4()
         cv::cuda::transpose(matImage, matResult);
     }
 
-    float totalTime = stopWatch.Now();
+    float totalTime = ToFloat(stopWatch.Now());
     auto averageTime = totalTime / REPEAT_TIME;
     std::cout << "Repeat " << REPEAT_TIME << " times. Total time: " << totalTime << ", average time: " << averageTime << std::endl;
 }
@@ -97,6 +97,33 @@ void TestTransposeSpeed() {
     TransposeSpeedTest_2();
     TransposeSpeedTest_3();
     TransposeSpeedTest_4();
+}
+
+static void TestRotateImage90SpeedTest(int caseNo, int type, const std::string& testName) {
+    std::cout << std::endl << "-----------------------------------------------------";
+    std::cout << std::endl << "ROTATE IMAGE 90 Degree of " << testName << " SPEED TEST #" << caseNo << " STARTING";
+    std::cout << std::endl << "-----------------------------------------------------";
+    std::cout << std::endl;
+
+    float totalTime = 0;
+    cv::Mat matResult = cv::Mat::zeros(2040, 2048, type);
+    for (int i = 0; i < REPEAT_TIME; ++i) {
+        cv::Mat matImage = cv::Mat::eye(2048, 2040, type);
+
+        CStopWatch stopWatch;
+        cv::transpose(matImage, matResult);
+        cv::flip(matResult, matResult, 1); //transpose+flip(1)=CW
+
+        totalTime += stopWatch.Now();
+    }
+
+    float averageTime = totalTime / REPEAT_TIME;
+    std::cout << "Repeat " << REPEAT_TIME << " times. Total time: " << totalTime << ", average time: " << averageTime << std::endl;
+}
+
+void TestRotateSpeed() {
+    TestRotateImage90SpeedTest(0, CV_8UC1, "CV_8UC1");
+    TestRotateImage90SpeedTest(1, CV_32FC1, "CV_32FC1");
 }
 
 }

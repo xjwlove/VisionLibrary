@@ -9,6 +9,7 @@ namespace Vision
 
 void MatchTmplSpeedTest();
 void TestTransposeSpeed();
+void TestRotateSpeed();
 
 }
 }
