@@ -745,7 +745,7 @@ struct PR_PICK_COLOR_RPY {
     VisionStatus            enStatus;
     UInt32                  nPickPointCount;
     cv::Mat                 matResultMask;
-    cv::Mat                 matResultImg;
+    cv::Mat                 matResultImg;       //The output type is same as input type, so it is color image
 };
 
 struct PR_CALIBRATE_CAMERA_CMD {
@@ -1454,7 +1454,7 @@ struct PR_CALC_3D_HEIGHT_DIFF_CMD {
         fEffectHRatioStart(0.3f),
         fEffectHRatioEnd(0.7f) {}
     cv::Mat                 matHeight;
-    cv::Mat                 matMask;
+    cv::Mat                 matMask;                //Black area is masked area, white area is useful area.
     VectorOfRect            vecRectBases;           //One or more bases as the reference surface.
     cv::Rect                rectROI;                //The ROI to measure height difference to base.
     float                   fEffectHRatioStart;     //If fEffectHRatioStart = 0.3, the lower 30% points in the window will be removed for fitting.
