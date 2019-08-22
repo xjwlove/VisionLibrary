@@ -16,136 +16,135 @@ int _tmain(int argc, _TCHAR* argv[])
     /*****************************************
     * Test Vision Library Internal Functions *
     *****************************************/
-    _PR_InternalTest();
+    //_PR_InternalTest();
 
-    TestOCV();
+    //TestOCV();
 
-    /*************************
-    * Test Device Inspection *
-    **************************/
-    TestInspDevice();
-    TestInspDeviceAutoThreshold();
+    ///*************************
+    //* Test Device Inspection *
+    //**************************/
+    //TestInspDevice();
+    //TestInspDeviceAutoThreshold();
 
-    /*************************
-    * Test Device Inspection *
-    **************************/
-    TestRunLogcase();
+    ///*************************
+    //* Test Device Inspection *
+    //**************************/
+    //TestRunLogcase();
 
-    /*************************
-    * Test Template Matching *
-    **************************/
+    ///*************************
+    //* Test Template Matching *
+    //**************************/
     TestTmplMatch();
     TestSrchFiducialMark();
 
-    /********************
-    * Test Fitting Line *
-    *********************/
-    TestFitLine();
+    ///********************
+    //* Test Fitting Line *
+    //*********************/
+    //TestFitLine();
 
-    /***************************
-    * Test Point Line Distance *
-    ****************************/
-    TestPointLineDistance();
+    ///***************************
+    //* Test Point Line Distance *
+    //****************************/
+    //TestPointLineDistance();
 
-    /******************************
-    * Test Calculate 2 line angle *
-    *******************************/
-    TestTwoLineAngle();
+    ///******************************
+    //* Test Calculate 2 line angle *
+    //*******************************/
+    //TestTwoLineAngle();
 
-    /**********************************
-    * Test Calculate 2 line intersect *
-    **********************************/
-    TestTwoLineIntersect();
+    ///**********************************
+    //* Test Calculate 2 line intersect *
+    //**********************************/
+    //TestTwoLineIntersect();
 
-    /******************************
-    * Test Parallel line distance *
-    *******************************/
-    TestParallelLineDistance();
+    ///******************************
+    //* Test Parallel line distance *
+    //*******************************/
+    //TestParallelLineDistance();
 
-    /**************************
-    * Test Cross Section Area *
-    ***************************/
-    TestCrossSectionArea();
+    ///**************************
+    //* Test Cross Section Area *
+    //***************************/
+    //TestCrossSectionArea();
 
-    /*****************************
-    * Test Fitting Parallel Line *
-    *****************************/
-    TestFitParellelLine();
+    ///*****************************
+    //* Test Fitting Parallel Line *
+    //*****************************/
+    //TestFitParellelLine();
 
-    /********************
-    * Test Fitting Rect *
-    *********************/
-    TestFitRect();
+    ///********************
+    //* Test Fitting Rect *
+    //*********************/
+    //TestFitRect();
 
-    /**********************
-    * Test Fitting Circle *
-    ***********************/
-    TestFitCircle();
+    ///**********************
+    //* Test Fitting Circle *
+    //***********************/
+    //TestFitCircle();
 
-    /**********************
-    * Test Auto Threshold *
-    ***********************/
-    TestAutoThreshold();
+    ///**********************
+    //* Test Auto Threshold *
+    //***********************/
+    //TestAutoThreshold();
 
-    /***************
-    * Test Caliper *
-    ***************/
-    TestCaliper();
+    ///***************
+    //* Test Caliper *
+    //***************/
+    //TestCaliper();
 
-    /************************
-    * Test Calibrate Camera *
-    ************************/
-    TestCalibrateCamera();
+    ///************************
+    //* Test Calibrate Camera *
+    //************************/
+    //TestCalibrateCamera();
 
-    /************************
-    * Test Auto Locate Lead *
-    ************************/
-    TestAutoLocateLead();
+    ///************************
+    //* Test Auto Locate Lead *
+    //************************/
+    //TestAutoLocateLead();
 
-    /**********************
-    * Test Inspect Bridge *
-    ***********************/
-    TestInspBridge();
+    ///**********************
+    //* Test Inspect Bridge *
+    //***********************/
+    //TestInspBridge();
 
-    /*************************
-    * Test Inspect Chip Head *
-    **************************/
-    TestInspChipHead();
+    ///*************************
+    //* Test Inspect Chip Head *
+    //**************************/
+    //TestInspChipHead();
 
-    /*************************
-    * Test Inspect Chip Body *
-    **************************/
-    TestInspChipBody();
+    ///*************************
+    //* Test Inspect Chip Body *
+    //**************************/
+    //TestInspChipBody();
 
-    /***************************
-    * Test Inspect Chip Square *
-    ****************************/
-    TestInspChipSquare();
+    ///***************************
+    //* Test Inspect Chip Square *
+    //****************************/
+    //TestInspChipSquare();
 
-    /************************
-    * Test Inspect Chip CAE *
-    *************************/
-    TestInspChipCAE();
+    ///************************
+    //* Test Inspect Chip CAE *
+    //*************************/
+    //TestInspChipCAE();
 
-    /*****************************
-    * Test Inspect Chip Circular *
-    ******************************/
-    TestInspChipCircular();
+    ///*****************************
+    //* Test Inspect Chip Circular *
+    //******************************/
+    //TestInspChipCircular();
 
-    /*****************************
-    * Test Inspect Contour *
-    ******************************/
-    TestInspContour();
+    ///*****************************
+    //* Test Inspect Contour *
+    //******************************/
+    //TestInspContour();
 
-    Test3D();
+    //Test3D();
 
-    TestCalcCameraMTF();
+    //TestCalcCameraMTF();
 
-    TestCombineImageNew();
+    //TestCombineImageNew();
 
-    TestTableMapping();
+    //TestTableMapping();
 
     PR_DumpTimeLog("./Vision/Time.log");
     return 0;
 }
-

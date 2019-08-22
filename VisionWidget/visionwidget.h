@@ -53,6 +53,8 @@ private slots:
     void on_selectCmpImageBtn1_clicked();
     void on_selectCmpImageBtn2_clicked();
     void on_btnCmpImage_clicked();
+    void on_btnSelectHeightPath_clicked();
+    void on_btnHeightToGray_clicked();
 
 protected:
     bool checkDisplayImage();

@@ -16,7 +16,8 @@ int _tmain(int argc, _TCHAR* argv[])
 
     TestTransposeSpeed();
 
-    PR_FreeAllRecord();
-	return 0;
-}
+    TestRotateSpeed();
 
+    PR_FreeAllRecord();
+    return 0;
+}

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1377</width>
-    <height>768</height>
+    <height>758</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -2543,7 +2543,7 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>100</y>
+        <y>90</y>
         <width>611</width>
         <height>61</height>
        </rect>
@@ -2627,7 +2627,7 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>180</y>
+        <y>160</y>
         <width>611</width>
         <height>91</height>
        </rect>
@@ -2827,7 +2827,7 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>290</y>
+        <y>260</y>
         <width>611</width>
         <height>91</height>
        </rect>
@@ -2943,7 +2943,7 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>400</y>
+        <y>360</y>
         <width>611</width>
         <height>61</height>
        </rect>
@@ -3001,7 +3001,7 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>480</y>
+        <y>430</y>
         <width>611</width>
         <height>101</height>
        </rect>
@@ -3063,6 +3063,55 @@
         <rect>
          <x>120</x>
          <y>60</y>
+         <width>341</width>
+         <height>31</height>
+        </rect>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QGroupBox" name="groupBoxHeightToGray">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>550</y>
+        <width>611</width>
+        <height>61</height>
+       </rect>
+      </property>
+      <property name="title">
+       <string>Height To Gray</string>
+      </property>
+      <widget class="QPushButton" name="btnHeightToGray">
+       <property name="geometry">
+        <rect>
+         <x>490</x>
+         <y>20</y>
+         <width>101</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Convert</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="btnSelectHeightPath">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>20</y>
+         <width>101</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Select Height</string>
+       </property>
+      </widget>
+      <widget class="QLineEdit" name="lineEditHeightPath">
+       <property name="geometry">
+        <rect>
+         <x>120</x>
+         <y>20</y>
          <width>341</width>
          <height>31</height>
         </rect>

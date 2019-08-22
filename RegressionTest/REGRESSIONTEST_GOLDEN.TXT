@@ -520,6 +520,12 @@ Match template score 88.1
 Match template result 1397.5, 1348.5
 Match template angle 0.0
 
+------------------------------------------
+MATCH TEMPLATE REGRESSION TEST #8 STARTING
+------------------------------------------
+Match template status 25
+Match template score 0.0
+
 ------------------------------------------------
 SEARCH FIDUCIAL MARK REGRESSION TEST #1 STARTING
 ------------------------------------------------

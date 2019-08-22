@@ -250,6 +250,8 @@ MatchTmpl::~MatchTmpl() {
     if (! matMaskI.empty())
         nImgComparePoints = cv::countNonZero(matMaskI);
     const double imgNorm = std::sqrt(nImgComparePoints * (imgStd.val[0]) * (imgStd.val[0]));
+    if (imgNorm <= 0)
+        return 0.f;
 
     const double correlation = tmpSubtractedMean.dot(imgSubtractedMean);
     float rho = ToFloat(correlation / (imgNorm*tmpNorm));

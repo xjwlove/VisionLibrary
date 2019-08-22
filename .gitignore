@@ -60,3 +60,5 @@ RegressionTest/Data/TestMerge4DlpHeight/PR_Merge3DHeight_Result.png
 RegressionTest/Data/TestAutoLocateLead_Result_5.png
 RegressionTest/Data/TestAutoLocateLead_Result_6.png
 RegressionTest/Data/TestSrchTmpl_7/SrchResult.png
+RegressionTest/Data/TestSrchTmpl_8/SrchResult.png
+SpeedTest/SpeedTest_result.txt

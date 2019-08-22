@@ -91,7 +91,7 @@ bool VisionWidget::checkDisplayImage() {
 }
 
 QString VisionWidget::_selectImage() {
-     QFileDialog dialog(this);
+    QFileDialog dialog(this);
     dialog.setFileMode(QFileDialog::AnyFile);
     dialog.setAcceptMode(QFileDialog::AcceptOpen);
     dialog.setNameFilter(tr("Image Files (*.png *.jpg *.bmp)"));
@@ -1073,4 +1073,35 @@ void VisionWidget::on_btnCmpImage_clicked() {
     cv::compare(matImage1, matImage2, matDiff, cv::CmpTypes::CMP_NE);
     cv::cvtColor(matDiff, matDiff, CV_GRAY2BGR);
     ui.visionView->setMat(VisionView::DISPLAY_SOURCE::ORIGINAL, matDiff);
+}
+
+void VisionWidget::on_btnSelectHeightPath_clicked() {
+    QFileDialog dialog(this);
+    dialog.setFileMode(QFileDialog::AnyFile);
+    dialog.setAcceptMode(QFileDialog::AcceptOpen);
+    dialog.setNameFilter(tr("Height Files (*.yml *.csv)"));
+    dialog.setViewMode(QFileDialog::Detail);
+    QStringList fileNames;
+    if (dialog.exec()) {
+        fileNames = dialog.selectedFiles();
+    }
+    else
+        return;
+    QString strFilePath = fileNames[0];
+    ui.lineEditHeightPath->setText(strFilePath);
+}
+
+void VisionWidget::on_btnHeightToGray_clicked() {
+    std::string strFilePath = ui.lineEditHeightPath->text().toStdString();
+    PR_HEIGHT_TO_GRAY_CMD stCmd;
+    PR_HEIGHT_TO_GRAY_RPY stRpy;
+
+    cv::FileStorage fs(strFilePath, cv::FileStorage::READ);
+    cv::FileNode fileNode = fs["Height"];
+    cv::read(fileNode, stCmd.matHeight, cv::Mat());
+    fs.release();
+
+    PR_HeightToGray(&stCmd, &stRpy);
+    cv::cvtColor(stRpy.matGray, stRpy.matGray, CV_GRAY2BGR);
+    ui.visionView->setMat(VisionView::DISPLAY_SOURCE::ORIGINAL, stRpy.matGray);
 }
