@@ -980,9 +980,12 @@ private:
     const String _strKeyBaseROI         = "BaseROI_";
     const String _strKeyHRatioStart     = "HRatioStart";
     const String _strKeyHRatioEnd       = "HRatioEnd";
+    const String _strKeyExpectedHeight  = "ExpectedHeight";
+    const String _strKeyMaxHeightDiff   = "MaxHeightDiff";
+    const String _strKeyMinHeightDiff   = "MinHeightDiff";
 
     const String _strKeyStatus          = "Status";
-    const String _strKeyHeightDiff      = "HeightDiff";
+    const String _strKeyHeight          = "Height";
 };
 
 class LogCaseRebase3DHeight : public LogCase

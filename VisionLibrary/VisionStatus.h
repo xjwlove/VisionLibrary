@@ -83,6 +83,7 @@ enum class VisionStatus
     CALC_3D_HEIGHT_NO_BASE_POINT        = 102,
     CALC_3D_HEIGHT_DIFF_FAIL            = 103,
     FAIL_TO_EXTRACT_3D_SOLDER           = 104,
+    HEIGHT_DIFF_OUT_OF_TOL              = 105,
 
     //Bridge status
     BRIDGE_DEFECT                       = 120,
