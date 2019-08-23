@@ -777,7 +777,7 @@ void TestCalc3DHeightDiff(const cv::Mat &matHeight) {
     PR_Calc3DHeightDiff(&stCmd, &stRpy);
     std::cout << "PR_Calc3DHeightDiff status " << ToInt32(stRpy.enStatus) << std::endl;
     if (VisionStatus::OK == stRpy.enStatus) {
-        std::cout << "Height Diff Result " << stRpy.fHeightDiff << std::endl;
+        std::cout << "Height Diff Result " << stRpy.fHeight << std::endl;
     }
 }
 
