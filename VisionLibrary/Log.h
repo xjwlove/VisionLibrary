@@ -2,6 +2,7 @@
 #define _LOG_H_
 
 #include "BaseType.h"
+#include <mutex>
 
 namespace AOI
 {
@@ -16,6 +17,8 @@ protected:
     Log();
     String _strLogPath = ".\\Vision\\log.log";
     const UInt32 STANDARD_MSG_LENGTH = 80;
+    std::mutex  m_mutex;
+
 public:
     static Log *GetInstance();
     void SetLogPath(const String &strLogPath);

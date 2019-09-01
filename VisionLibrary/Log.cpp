@@ -25,6 +25,8 @@ void Log::SetLogPath(const String &strLogPath)
 
 void Log::Write(const String &strMsg, const char *filename, int line)
 {
+    std::lock_guard<std::mutex> lk(m_mutex);
+
     auto strParent = FileUtils::GetParentPathname( _strLogPath );
     if (!FileUtils::Exists(strParent))
         FileUtils::MakeDirectory(strParent);
