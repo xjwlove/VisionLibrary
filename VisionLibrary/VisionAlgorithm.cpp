@@ -7365,6 +7365,14 @@ VisionStatus VisionAlgorithm::_findLineByCaliper(const cv::Mat &matInputImg, con
         return pstRpy->enStatus;
     }
 
+    if (pstCmd->bCheckHeight && (pstCmd->fMaxHeightDiff <= 0.f || pstCmd->fMinHeightDiff >= 0.f)) {
+        std::stringstream ss;
+        ss << "MaxHeightDiff " << pstCmd->fMaxHeightDiff << " and MinHeightDiff " << pstCmd->fMinHeightDiff << " are invalid.";
+        WriteLog(ss.str());
+        pstRpy->enStatus = VisionStatus::INVALID_PARAM;
+        return pstRpy->enStatus;
+    }
+
     MARK_FUNCTION_START_TIME;
     SETUP_LOGCASE(LogCaseCalc3DHeightDiff);
 

@@ -2374,8 +2374,16 @@ static inline cv::Mat calcOrder5BezierCoeff(const cv::Mat &matU) {
     cv::Mat matZZ(vecHeightTmp);
 
     matZZ = matZZ - matXX * matK;
-    pstRpy->fHeightDiff = ToFloat(cv::mean(matZZ)[0]);
-    pstRpy->enStatus = VisionStatus::OK;
+    pstRpy->fHeight = ToFloat(cv::mean(matZZ)[0]);
+    if (pstCmd->bCheckHeight) {
+        if (pstRpy->fHeight > pstCmd->fExpectedHeight + pstCmd->fMinHeightDiff &&
+            pstRpy->fHeight < pstCmd->fExpectedHeight + pstCmd->fMaxHeightDiff)
+            pstRpy->enStatus = VisionStatus::OK;
+        else
+            pstRpy->enStatus = VisionStatus::HEIGHT_DIFF_OUT_OF_TOL;
+    }
+    else
+        pstRpy->enStatus = VisionStatus::OK;
 
     TimeLog::GetInstance()->addTimeLog("Calculate height difference take: ", stopWatch.Span());
 }

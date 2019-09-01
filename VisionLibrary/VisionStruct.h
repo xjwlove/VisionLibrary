@@ -1451,19 +1451,24 @@ struct PR_CALC_MERGE_4_DLP_HEIGHT_RPY {
 
 struct PR_CALC_3D_HEIGHT_DIFF_CMD {
     PR_CALC_3D_HEIGHT_DIFF_CMD() :
-        fEffectHRatioStart(0.3f),
-        fEffectHRatioEnd(0.7f) {}
+        fEffectHRatioStart (0.3f),
+        fEffectHRatioEnd   (0.7f),
+        bCheckHeight       (false) {}
     cv::Mat                 matHeight;
-    cv::Mat                 matMask;                //Black area is masked area, white area is useful area.
-    VectorOfRect            vecRectBases;           //One or more bases as the reference surface.
-    cv::Rect                rectROI;                //The ROI to measure height difference to base.
-    float                   fEffectHRatioStart;     //If fEffectHRatioStart = 0.3, the lower 30% points in the window will be removed for fitting.
-    float                   fEffectHRatioEnd;       //If fEffectHRatioEnd = 0.7, the upper 30% of points in the window will be removed for fitting.
+    cv::Mat                 matMask;            //Black area is masked area, white area is useful area.
+    VectorOfRect            vecRectBases;       //One or more bases as the reference surface.
+    cv::Rect                rectROI;            //The ROI to measure height difference to base.
+    float                   fEffectHRatioStart; //If fEffectHRatioStart = 0.3, the lower 30% points in the window will be removed for fitting.
+    float                   fEffectHRatioEnd;   //If fEffectHRatioEnd = 0.7, the upper 30% of points in the window will be removed for fitting.
+    bool                    bCheckHeight;       //If enabled, then check with expected height difference.
+    float                   fExpectedHeight;    //The expected hight difference.
+    float                   fMaxHeightDiff;     //If the real height larger than fExpectedHeight + fMaxHeightDiff, then the check fail. It should be positive value.
+    float                   fMinHeightDiff;     //If the real height smaller than fExpectedHeight + fMinHeightDiff, then the check fail. It should be negative value.
 };
 
 struct PR_CALC_3D_HEIGHT_DIFF_RPY {
     VisionStatus            enStatus;
-    float                   fHeightDiff;
+    float                   fHeight;
 };
 
 struct PR_REBASE_3D_HEIGHT_CMD {

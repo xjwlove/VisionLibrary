@@ -34,3 +34,36 @@ void TestMatchTmpl_1() {
         return;
     cv::imwrite("./data/MatchTmplResult.png", stSrchRpy.matResultImg);
 }
+
+void TestTmplMatch_9() {
+    std::cout << std::endl << "------------------------------------------";
+    std::cout << std::endl << "MATCH TEMPLATE REGRESSION TEST #9 STARTING";
+    std::cout << std::endl << "------------------------------------------";
+    std::cout << std::endl;
+
+    PR_LRN_TEMPLATE_CMD stLrnCmd;
+    PR_LRN_TEMPLATE_RPY stLrnRpy;
+
+    stLrnCmd.matInputImg = cv::imread("./data/TestSrchTmpl_9/Tmpl.png");
+    stLrnCmd.enAlgorithm = PR_MATCH_TMPL_ALGORITHM::SQUARE_DIFF_NORMED;
+    stLrnCmd.rectROI = cv::Rect(0, 0, stLrnCmd.matInputImg.cols, stLrnCmd.matInputImg.rows);
+
+    PR_LrnTmpl(&stLrnCmd, &stLrnRpy);
+    if (stLrnRpy.enStatus != VisionStatus::OK) {
+        std::cout << "Failed to learn template." << std::endl;
+        return;
+    }
+
+    PR_MATCH_TEMPLATE_CMD stSrchCmd;
+    PR_MATCH_TEMPLATE_RPY stSrchRpy;
+    stSrchCmd.matInputImg = cv::imread("./data/TestSrchTmpl_9/image.png");
+    stSrchCmd.enAlgorithm = PR_MATCH_TMPL_ALGORITHM::SQUARE_DIFF_NORMED;
+    stSrchCmd.enMotion = PR_OBJECT_MOTION::TRANSLATION;
+    stSrchCmd.rectSrchWindow = cv::Rect(0, 0, stSrchCmd.matInputImg.cols, stSrchCmd.matInputImg.rows);
+    stSrchCmd.nRecordId = stLrnRpy.nRecordId;
+
+    PR_MatchTmpl(&stSrchCmd, &stSrchRpy);
+    //PrintMatchTmplRpy(stSrchRpy);
+    if (!stSrchRpy.matResultImg.empty())
+        cv::imwrite("./data/TestSrchTmpl_9/SrchResult.png", stSrchRpy.matResultImg);
+}

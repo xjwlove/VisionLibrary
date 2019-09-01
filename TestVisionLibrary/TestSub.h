@@ -102,6 +102,7 @@ void TestOCV_2();
 void TestOCV_3();
 
 void TestMatchTmpl_1();
+void TestTmplMatch_9();
 
 void TestRead2DCode_1();
 void TestRead2DCode_2();

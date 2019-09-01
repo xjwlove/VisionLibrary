@@ -2898,6 +2898,7 @@ VisionStatus LogCaseCalc3DHeightDiff::WriteCmd(const PR_CALC_3D_HEIGHT_DIFF_CMD 
     VectorOfRect vecRect = pstCmd->vecRectBases;
     vecRect.push_back(pstCmd->rectROI);
     cv::Rect rectBounding = CalcUtils::boundingRect(vecRect);
+    CalcUtils::adjustRectROI(rectBounding, pstCmd->matHeight);
 
     CSimpleIni ini(false, false, false);
     auto cmdRpyFilePath = _strLogCasePath + _CMD_RPY_FILE_NAME;
@@ -2915,6 +2916,9 @@ VisionStatus LogCaseCalc3DHeightDiff::WriteCmd(const PR_CALC_3D_HEIGHT_DIFF_CMD 
     }
     ini.SetDoubleValue(_CMD_SECTION.c_str(), _strKeyHRatioStart.c_str(), pstCmd->fEffectHRatioStart);
     ini.SetDoubleValue(_CMD_SECTION.c_str(), _strKeyHRatioEnd.c_str(), pstCmd->fEffectHRatioEnd);
+    ini.SetDoubleValue(_CMD_SECTION.c_str(), _strKeyExpectedHeight.c_str(), pstCmd->fExpectedHeight);
+    ini.SetDoubleValue(_CMD_SECTION.c_str(), _strKeyMaxHeightDiff.c_str(), pstCmd->fMaxHeightDiff);
+    ini.SetDoubleValue(_CMD_SECTION.c_str(), _strKeyMinHeightDiff.c_str(), pstCmd->fMinHeightDiff);
     ini.SaveFile(cmdRpyFilePath.c_str());
 
     cv::Mat matHeight(pstCmd->matHeight, rectBounding);
@@ -2935,7 +2939,7 @@ VisionStatus LogCaseCalc3DHeightDiff::WriteRpy(const PR_CALC_3D_HEIGHT_DIFF_RPY 
     auto cmdRpyFilePath = _strLogCasePath + _CMD_RPY_FILE_NAME;
     ini.LoadFile(cmdRpyFilePath.c_str());
     ini.SetLongValue(_RPY_SECTION.c_str(), _strKeyStatus.c_str(), ToInt32(pstRpy->enStatus));
-    ini.SetDoubleValue(_RPY_SECTION.c_str(), _strKeyHeightDiff.c_str(), pstRpy->fHeightDiff);
+    ini.SetDoubleValue(_RPY_SECTION.c_str(), _strKeyHeight.c_str(), pstRpy->fHeight);
     ini.SaveFile(cmdRpyFilePath.c_str());
 
     _zip();

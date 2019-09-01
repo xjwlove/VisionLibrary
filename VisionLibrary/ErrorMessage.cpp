@@ -220,6 +220,11 @@ VisionStatus GetErrorInfo(VisionStatus enStatus, PR_GET_ERROR_INFO_RPY *pstRpy)
         pstRpy->enErrorLevel = PR_STATUS_ERROR_LEVEL::PR_INSP_STATUS;
         break;
 
+    case VisionStatus::HEIGHT_DIFF_OUT_OF_TOL:
+        _snprintf(pstRpy->achErrorStr, PR_MAX_ERR_STR_LEN, "Height is out of tolerance with the expected height.");
+        pstRpy->enErrorLevel = PR_STATUS_ERROR_LEVEL::PR_INSP_STATUS;
+        break;
+
     case VisionStatus::BRIDGE_DEFECT:
         _snprintf(pstRpy->achErrorStr, PR_MAX_ERR_STR_LEN, "The inspect window with bridge defect.");
         pstRpy->enErrorLevel = PR_STATUS_ERROR_LEVEL::PR_INSP_STATUS;
