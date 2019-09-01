@@ -127,3 +127,5 @@ void TestGenerateSelectedImage();
 
 void TestSortIndexValue();
 void TestMeasureDist();
+
+void TestMultipleThread();

@@ -48,7 +48,6 @@ HISTORY:
 #define BUFLEN      32767
 #define MAX_NAME_LEN 1024
 
-static stJAndSHeader* pstrFileNameArr=NULL;	//@4
 void error(const char *msg);
 extern short file_compress(const char *szDir, const char *szFileName,
     const char *szSrcExt, const char *szZipExt, const char *mode);
@@ -56,65 +55,6 @@ extern short file_compress(const char *szDir, const char *szFileName,
 static int writeHeader ( stJAndSHeader *ptrHeader, FILE *fileHdl);
 static int concatFiles ( const char *sourceDir, stJAndSHeader *ptrHeader,
     FILE *fileHdl);
-
-
-void Append_OneItem_FileNameArr(char *filename, short size)
-{
-	if(pstrFileNameArr->numFilesJoined<MAX_FILES_JOINED){
-		strcpy(pstrFileNameArr->fileName[pstrFileNameArr->numFilesJoined],filename);
-		pstrFileNameArr->fileLen[pstrFileNameArr->numFilesJoined]=size;
-		pstrFileNameArr->numFilesJoined++;
-	}
-}
-
-int joinFiles_Ext1 (const char *sourceDir, const char *sourceName,const char *extName)
-{
-	stJAndSHeader	*joinHdr = NULL;
-    FILE	*fileHdl = NULL;
-    char	destName[_MAX_DIR],tempName[_MAX_DIR];
-    char 	outmode[] = "wb6 ";
-    short	nErr;
-
-    // Get memory for the join header structure
-    joinHdr=pstrFileNameArr;
-    if(joinHdr->numFilesJoined==0)
-    {
-    	return 1;
-    }
-    
-	errno = EZERO;
-	// Generate the destination name
-	if (strlen(sourceDir))
-		sprintf (destName, "%s\\%s%s", sourceDir, sourceName, extName);
-	else
-		sprintf (destName, ".\\%s%s", sourceName, extName);
-
-	// Open the join file...
-	if ((fileHdl = fopen (destName, "wb")) != NULL)
-	{
-		// ... and join in all the files.
-		writeHeader ( joinHdr, fileHdl);
-		concatFiles ( sourceDir, joinHdr, fileHdl);
-		fclose (fileHdl);
-
-		// Rename file as a temporary file
-		if (strlen(sourceDir))
-			sprintf (tempName, "%s\\%s%s", sourceDir, sourceName, ".CAT");
-		else
-			sprintf (tempName, ".\\%s%s", sourceName, ".CAT");
-
-		rename (destName, tempName);
-
-		// Compress the file @2              
-		if ((nErr = file_compress (sourceDir, sourceName, ".CAT", extName,outmode)) != 0)
-		{
-			String msg = String("Failed to compress ") + sourceName;
-            throw std::exception ( msg.c_str() );
-			return nErr;
-		}
-	}
-    return errno;
-}
 
 /* ===========================================================================
  * Display error message and exit @2
@@ -523,7 +463,7 @@ int joinDir(const char *sourceDir, const char *extName)
 
                 // Compress the file @2
                 if ( ( nErr = file_compress ( strParentDir.c_str(), strFolderName.c_str(), ".CAT", extName, outmode ) ) != 0 )
-                {                    
+                {
                     free(joinHdr);
                     String msg = String("Failed to compress ") + tempName;
                     throw std::exception ( msg.c_str() );

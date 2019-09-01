@@ -838,7 +838,7 @@ int _tmain(int argc, _TCHAR* argv[])
     //TestOCV_3();
 
     //TestMatchTmpl_1();
-    TestTmplMatch_9();
+    //TestTmplMatch_9();
 
     //TestRead2DCode_1();
 
@@ -860,6 +860,8 @@ int _tmain(int argc, _TCHAR* argv[])
     //TestGenerateSelectedImage();
 
     //TestMeasureDist();
+
+    TestMultipleThread();
 
     PR_DumpTimeLog("./Vision/Time.log");
     return 0;

@@ -1,6 +1,8 @@
-#include "LogCase.h"
 #include <vector>
 #include <sstream>
+#include <atomic>
+
+#include "LogCase.h"
 #include "opencv2/highgui.hpp"
 #include "boost/format.hpp"
 #include "boost/filesystem.hpp"
@@ -105,6 +107,8 @@ cv::Scalar LogCase::_parseScalar(const String &strScalar) {
     return cv::Scalar();
 }
 
+static std::atomic<int> logCaseIndex = 0;
+
 String LogCase::_generateLogCaseName(const String &strFolderPrefix) {
     auto timeT = std::time(nullptr);
     auto stTM = std::localtime(&timeT);
@@ -112,7 +116,7 @@ String LogCase::_generateLogCaseName(const String &strFolderPrefix) {
     auto nMilliseconds = stopWatch.AbsNow() - timeT * 1000;
     String strFmt = "_%04s_%02s_%02s_%02s_%02s_%02s_%03s";
     String strTime = (boost::format(strFmt) % (stTM->tm_year + 1900) % (stTM->tm_mon + 1) % stTM->tm_mday % stTM->tm_hour % stTM->tm_min % stTM->tm_sec % nMilliseconds).str();
-    String strLogCasePath = _strLogCasePath + strFolderPrefix + strTime + "\\";
+    String strLogCasePath = _strLogCasePath + strFolderPrefix + "_" + std::to_string(++logCaseIndex) + strTime + "\\";
     return strLogCasePath;
 }
 
