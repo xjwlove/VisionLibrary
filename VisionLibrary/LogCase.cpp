@@ -1,6 +1,7 @@
 #include <vector>
 #include <sstream>
 #include <atomic>
+#include <mutex>
 
 #include "LogCase.h"
 #include "opencv2/highgui.hpp"
@@ -120,7 +121,11 @@ String LogCase::_generateLogCaseName(const String &strFolderPrefix) {
     return strLogCasePath;
 }
 
+static std::mutex g_mutex;
+
 void LogCase::_zip() {
+    std::lock_guard<std::mutex> lock(g_mutex);
+
     String strPath = _strLogCasePath;
     if (! strPath.empty() && (strPath.back() == '\\' || strPath.back() == '/'))
         strPath = strPath.substr(0, strPath.length() - 1);
