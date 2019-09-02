@@ -2830,8 +2830,10 @@ VisionStatus LogCaseInsp3DSolder::WriteCmd(const PR_INSP_3D_SOLDER_CMD *const ps
     cv::Mat matHeight(pstCmd->matHeight, pstCmd->rectDeviceROI);
     cv::imwrite(_strLogCasePath + _IMAGE_NAME, matColorImg);
     cv::FileStorage fs(_strLogCasePath + _strHeightFileName, cv::FileStorage::WRITE);
-    cv::write(fs, "Height", matHeight);
-    fs.release();
+    if (fs.isOpened()) {
+        cv::write(fs, "Height", matHeight);
+        fs.release();
+    }
     return VisionStatus::OK;
 }
 
@@ -2933,8 +2935,10 @@ VisionStatus LogCaseCalc3DHeightDiff::WriteCmd(const PR_CALC_3D_HEIGHT_DIFF_CMD 
     cv::Mat matHeight(pstCmd->matHeight, rectBounding);
     matHeight = matHeight.clone();
     cv::FileStorage fs(_strLogCasePath + _strHeightFileName, cv::FileStorage::WRITE);
-    cv::write(fs, "Height", matHeight);
-    fs.release();
+    if (fs.isOpened()) {
+        cv::write(fs, "Height", matHeight);
+        fs.release();
+    }
 
     if (!pstCmd->matMask.empty()) {
         cv::Mat matMask(pstCmd->matMask, rectBounding);
@@ -3010,8 +3014,10 @@ VisionStatus LogCaseRebase3DHeight::WriteCmd(const PR_REBASE_3D_HEIGHT_CMD *cons
     ini.SaveFile(cmdRpyFilePath.c_str());
 
     cv::FileStorage fs(_strLogCasePath + _strHeightFileName, cv::FileStorage::WRITE);
-    cv::write(fs, "Height", pstCmd->matHeight);
-    fs.release();
+    if (fs.isOpened()) {
+        cv::write(fs, "Height", pstCmd->matHeight);
+        fs.release();
+    }
 
     cv::imwrite(_strLogCasePath + _IMAGE_NAME, pstCmd->matPickBaseImg);
 
