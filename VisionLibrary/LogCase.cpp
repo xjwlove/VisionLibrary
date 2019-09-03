@@ -124,8 +124,6 @@ String LogCase::_generateLogCaseName(const String &strFolderPrefix) {
 static std::mutex g_mutex;
 
 void LogCase::_zip() {
-    std::lock_guard<std::mutex> lock(g_mutex);
-
     String strPath = _strLogCasePath;
     if (! strPath.empty() && (strPath.back() == '\\' || strPath.back() == '/'))
         strPath = strPath.substr(0, strPath.length() - 1);
@@ -213,6 +211,7 @@ VisionStatus LogCaseLrnObj::RunLogCase() {
 }
 
 VisionStatus LogCaseSrchObj::WriteCmd(const PR_SRCH_OBJ_CMD *const pstCmd) {
+    std::lock_guard<std::mutex> lock(g_mutex);
     if (!_bReplay) {
         _strLogCasePath = _generateLogCaseName(GetFolderPrefix());
         bfs::path dir(_strLogCasePath);
@@ -231,6 +230,7 @@ VisionStatus LogCaseSrchObj::WriteCmd(const PR_SRCH_OBJ_CMD *const pstCmd) {
 }
 
 VisionStatus LogCaseSrchObj::WriteRpy(const PR_SRCH_OBJ_RPY *const pstRpy) {
+    std::lock_guard<std::mutex> lock(g_mutex);
     CSimpleIni ini(false, false, false);
     auto cmdRpyFilePath = _strLogCasePath + _CMD_RPY_FILE_NAME;
     ini.LoadFile(cmdRpyFilePath.c_str());
@@ -272,6 +272,7 @@ VisionStatus LogCaseSrchObj::RunLogCase() {
 }
 
 VisionStatus LogCaseFitCircle::WriteCmd(const PR_FIT_CIRCLE_CMD *const pstCmd) {
+    std::lock_guard<std::mutex> lock(g_mutex);
     if (!_bReplay) {
         _strLogCasePath = _generateLogCaseName(GetFolderPrefix());
         bfs::path dir(_strLogCasePath);
@@ -297,6 +298,7 @@ VisionStatus LogCaseFitCircle::WriteCmd(const PR_FIT_CIRCLE_CMD *const pstCmd) {
 }
 
 VisionStatus LogCaseFitCircle::WriteRpy(const PR_FIT_CIRCLE_RPY *const pstRpy) {
+    std::lock_guard<std::mutex> lock(g_mutex);
     CSimpleIni ini(false, false, false);
     auto cmdRpyFilePath = _strLogCasePath + _CMD_RPY_FILE_NAME;
     ini.LoadFile(cmdRpyFilePath.c_str());
@@ -344,6 +346,7 @@ VisionStatus LogCaseFitCircle::RunLogCase() {
 }
 
 VisionStatus LogCaseFindCircle::WriteCmd(const PR_FIND_CIRCLE_CMD *const pstCmd) {
+    std::lock_guard<std::mutex> lock(g_mutex);
     if (!_bReplay) {
         _strLogCasePath = _generateLogCaseName(GetFolderPrefix());
         bfs::path dir(_strLogCasePath);
@@ -383,6 +386,7 @@ VisionStatus LogCaseFindCircle::WriteCmd(const PR_FIND_CIRCLE_CMD *const pstCmd)
 }
 
 VisionStatus LogCaseFindCircle::WriteRpy(const PR_FIND_CIRCLE_CMD *const pstCmd, const PR_FIND_CIRCLE_RPY *const pstRpy) {
+    std::lock_guard<std::mutex> lock(g_mutex);
     CSimpleIni ini(false, false, false);
     auto cmdRpyFilePath = _strLogCasePath + _CMD_RPY_FILE_NAME;
     ini.LoadFile(cmdRpyFilePath.c_str());
@@ -440,6 +444,7 @@ VisionStatus LogCaseFindCircle::RunLogCase() {
 }
 
 VisionStatus LogCaseInspCircle::WriteCmd(const PR_INSP_CIRCLE_CMD *const pstCmd) {
+    std::lock_guard<std::mutex> lock(g_mutex);
     if (!_bReplay) {
         _strLogCasePath = _generateLogCaseName(GetFolderPrefix());
         bfs::path dir(_strLogCasePath);
@@ -458,6 +463,7 @@ VisionStatus LogCaseInspCircle::WriteCmd(const PR_INSP_CIRCLE_CMD *const pstCmd)
 }
 
 VisionStatus LogCaseInspCircle::WriteRpy(const PR_INSP_CIRCLE_RPY *const pstRpy) {
+    std::lock_guard<std::mutex> lock(g_mutex);
     CSimpleIni ini(false, false, false);
     auto cmdRpyFilePath = _strLogCasePath + _CMD_RPY_FILE_NAME;
     ini.LoadFile(cmdRpyFilePath.c_str());
@@ -499,6 +505,7 @@ VisionStatus LogCaseInspCircle::RunLogCase() {
 }
 
 VisionStatus LogCaseFitLine::WriteCmd(const PR_FIT_LINE_CMD *const pstCmd) {
+    std::lock_guard<std::mutex> lock(g_mutex);
     if (!_bReplay) {
         _strLogCasePath = _generateLogCaseName(GetFolderPrefix());
         bfs::path dir(_strLogCasePath);
@@ -524,6 +531,7 @@ VisionStatus LogCaseFitLine::WriteCmd(const PR_FIT_LINE_CMD *const pstCmd) {
 }
 
 VisionStatus LogCaseFitLine::WriteRpy(const PR_FIT_LINE_RPY *const pstRpy) {
+    std::lock_guard<std::mutex> lock(g_mutex);
     CSimpleIni ini(false, false, false);
     auto cmdRpyFilePath = _strLogCasePath + _CMD_RPY_FILE_NAME;
     ini.LoadFile(cmdRpyFilePath.c_str());
@@ -572,6 +580,7 @@ VisionStatus LogCaseFitLine::RunLogCase() {
 }
 
 VisionStatus LogCaseFindLine::WriteCmd(const PR_FIND_LINE_CMD *const pstCmd) {
+    std::lock_guard<std::mutex> lock(g_mutex);
     if (!_bReplay) {
         _strLogCasePath = _generateLogCaseName(GetFolderPrefix());
         bfs::path dir(_strLogCasePath);
@@ -617,6 +626,7 @@ VisionStatus LogCaseFindLine::WriteCmd(const PR_FIND_LINE_CMD *const pstCmd) {
 }
 
 VisionStatus LogCaseFindLine::WriteRpy(const PR_FIND_LINE_CMD *const pstCmd, const PR_FIND_LINE_RPY *const pstRpy) {
+    std::lock_guard<std::mutex> lock(g_mutex);
     CSimpleIni ini(false, false, false);
     auto cmdRpyFilePath = _strLogCasePath + _CMD_RPY_FILE_NAME;
     ini.LoadFile(cmdRpyFilePath.c_str());
@@ -688,6 +698,7 @@ VisionStatus LogCaseFindLine::RunLogCase() {
 }
 
 VisionStatus LogCaseFitParallelLine::WriteCmd(const PR_FIT_PARALLEL_LINE_CMD *const pstCmd) {
+    std::lock_guard<std::mutex> lock(g_mutex);
     if (!_bReplay) {
         _strLogCasePath = _generateLogCaseName(GetFolderPrefix());
         bfs::path dir(_strLogCasePath);
@@ -708,6 +719,7 @@ VisionStatus LogCaseFitParallelLine::WriteCmd(const PR_FIT_PARALLEL_LINE_CMD *co
 }
 
 VisionStatus LogCaseFitParallelLine::WriteRpy(const PR_FIT_PARALLEL_LINE_RPY *const pstRpy) {
+    std::lock_guard<std::mutex> lock(g_mutex);
     CSimpleIni ini(false, false, false);
     auto cmdRpyFilePath = _strLogCasePath + _CMD_RPY_FILE_NAME;
     ini.LoadFile(cmdRpyFilePath.c_str());
@@ -753,6 +765,7 @@ VisionStatus LogCaseFitParallelLine::RunLogCase() {
 }
 
 VisionStatus LogCaseFitRect::WriteCmd(const PR_FIT_RECT_CMD *const pstCmd) {
+    std::lock_guard<std::mutex> lock(g_mutex);
     if (!_bReplay) {
         _strLogCasePath = _generateLogCaseName(GetFolderPrefix());
         bfs::path dir(_strLogCasePath);
@@ -775,6 +788,7 @@ VisionStatus LogCaseFitRect::WriteCmd(const PR_FIT_RECT_CMD *const pstCmd) {
 }
 
 VisionStatus LogCaseFitRect::WriteRpy(const PR_FIT_RECT_RPY *const pstRpy) {
+    std::lock_guard<std::mutex> lock(g_mutex);
     CSimpleIni ini(false, false, false);
     auto cmdRpyFilePath = _strLogCasePath + _CMD_RPY_FILE_NAME;
     ini.LoadFile(cmdRpyFilePath.c_str());
@@ -830,6 +844,7 @@ VisionStatus LogCaseFitRect::RunLogCase() {
 }
 
 VisionStatus LogCaseFindEdge::WriteCmd(const PR_FIND_EDGE_CMD *const pstCmd) {
+    std::lock_guard<std::mutex> lock(g_mutex);
     if (!_bReplay) {
         _strLogCasePath = _generateLogCaseName(GetFolderPrefix());
         bfs::path dir(_strLogCasePath);
@@ -850,6 +865,7 @@ VisionStatus LogCaseFindEdge::WriteCmd(const PR_FIND_EDGE_CMD *const pstCmd) {
 }
 
 VisionStatus LogCaseFindEdge::WriteRpy(const PR_FIND_EDGE_RPY *const pstRpy) {
+    std::lock_guard<std::mutex> lock(g_mutex);
     CSimpleIni ini(false, false, false);
     auto cmdRpyFilePath = _strLogCasePath + _CMD_RPY_FILE_NAME;
     ini.LoadFile(cmdRpyFilePath.c_str());
@@ -887,6 +903,7 @@ VisionStatus LogCaseFindEdge::RunLogCase() {
 }
 
 VisionStatus LogCaseSrchFiducial::WriteCmd(const PR_SRCH_FIDUCIAL_MARK_CMD *pstCmd) {
+    std::lock_guard<std::mutex> lock(g_mutex);
     if (!_bReplay) {
         _strLogCasePath = _generateLogCaseName(GetFolderPrefix());
         bfs::path dir(_strLogCasePath);
@@ -918,6 +935,7 @@ cv::Rect LogCaseSrchFiducial::_calcLogImageROI(const PR_SRCH_FIDUCIAL_MARK_CMD *
 }
 
 VisionStatus LogCaseSrchFiducial::WriteRpy(const PR_SRCH_FIDUCIAL_MARK_CMD *pstCmd, const PR_SRCH_FIDUCIAL_MARK_RPY *pstRpy) {
+    std::lock_guard<std::mutex> lock(g_mutex);
     CSimpleIni ini(false, false, false);
     auto cmdRpyFilePath = _strLogCasePath + _CMD_RPY_FILE_NAME;
     ini.LoadFile(cmdRpyFilePath.c_str());
@@ -959,6 +977,7 @@ VisionStatus LogCaseSrchFiducial::RunLogCase() {
 }
 
 VisionStatus LogCaseOcr::WriteCmd(PR_OCR_CMD *pstCmd) {
+    std::lock_guard<std::mutex> lock(g_mutex);
     if (!_bReplay) {
         _strLogCasePath = _generateLogCaseName(GetFolderPrefix());
         bfs::path dir(_strLogCasePath);
@@ -976,6 +995,7 @@ VisionStatus LogCaseOcr::WriteCmd(PR_OCR_CMD *pstCmd) {
 }
 
 VisionStatus LogCaseOcr::WriteRpy(PR_OCR_RPY *pstRpy) {
+    std::lock_guard<std::mutex> lock(g_mutex);
     CSimpleIni ini(false, false, false);
     auto cmdRpyFilePath = _strLogCasePath + _CMD_RPY_FILE_NAME;
     ini.LoadFile(cmdRpyFilePath.c_str());
@@ -1009,6 +1029,7 @@ VisionStatus LogCaseOcr::RunLogCase() {
 }
 
 VisionStatus LogCaseRemoveCC::WriteCmd(PR_REMOVE_CC_CMD *pstCmd) {
+    std::lock_guard<std::mutex> lock(g_mutex);
     if (!_bReplay) {
         _strLogCasePath = _generateLogCaseName(GetFolderPrefix());
         bfs::path dir(_strLogCasePath);
@@ -1028,6 +1049,7 @@ VisionStatus LogCaseRemoveCC::WriteCmd(PR_REMOVE_CC_CMD *pstCmd) {
 }
 
 VisionStatus LogCaseRemoveCC::WriteRpy(PR_REMOVE_CC_RPY *pstRpy) {
+    std::lock_guard<std::mutex> lock(g_mutex);
     CSimpleIni ini(false, false, false);
     auto cmdRpyFilePath = _strLogCasePath + _CMD_RPY_FILE_NAME;
     ini.LoadFile(cmdRpyFilePath.c_str());
@@ -1065,6 +1087,7 @@ VisionStatus LogCaseRemoveCC::RunLogCase() {
 }
 
 VisionStatus LogCaseDetectEdge::WriteCmd(PR_DETECT_EDGE_CMD *pstCmd) {
+    std::lock_guard<std::mutex> lock(g_mutex);
     if (!_bReplay) {
         _strLogCasePath = _generateLogCaseName(GetFolderPrefix());
         bfs::path dir(_strLogCasePath);
@@ -1084,6 +1107,7 @@ VisionStatus LogCaseDetectEdge::WriteCmd(PR_DETECT_EDGE_CMD *pstCmd) {
 }
 
 VisionStatus LogCaseDetectEdge::WriteRpy(PR_DETECT_EDGE_RPY *pstRpy) {
+    std::lock_guard<std::mutex> lock(g_mutex);
     CSimpleIni ini(false, false, false);
     auto cmdRpyFilePath = _strLogCasePath + _CMD_RPY_FILE_NAME;
     ini.LoadFile(cmdRpyFilePath.c_str());
@@ -1119,6 +1143,7 @@ VisionStatus LogCaseDetectEdge::RunLogCase() {
 }
 
 VisionStatus LogCaseAutoThreshold::WriteCmd(PR_AUTO_THRESHOLD_CMD *pstCmd) {
+    std::lock_guard<std::mutex> lock(g_mutex);
     if (!_bReplay) {
         _strLogCasePath = _generateLogCaseName(GetFolderPrefix());
         bfs::path dir(_strLogCasePath);
@@ -1136,6 +1161,7 @@ VisionStatus LogCaseAutoThreshold::WriteCmd(PR_AUTO_THRESHOLD_CMD *pstCmd) {
 }
 
 VisionStatus LogCaseAutoThreshold::WriteRpy(PR_AUTO_THRESHOLD_RPY *pstRpy) {
+    std::lock_guard<std::mutex> lock(g_mutex);
     CSimpleIni ini(false, false, false);
     auto cmdRpyFilePath = _strLogCasePath + _CMD_RPY_FILE_NAME;
     ini.LoadFile(cmdRpyFilePath.c_str());
@@ -1168,6 +1194,7 @@ VisionStatus LogCaseAutoThreshold::RunLogCase() {
 }
 
 VisionStatus LogCaseFillHole::WriteCmd(PR_FILL_HOLE_CMD *pstCmd) {
+    std::lock_guard<std::mutex> lock(g_mutex);
     if (!_bReplay) {
         _strLogCasePath = _generateLogCaseName(GetFolderPrefix());
         bfs::path dir(_strLogCasePath);
@@ -1190,6 +1217,7 @@ VisionStatus LogCaseFillHole::WriteCmd(PR_FILL_HOLE_CMD *pstCmd) {
 }
 
 VisionStatus LogCaseFillHole::WriteRpy(PR_FILL_HOLE_RPY *pstRpy) {
+    std::lock_guard<std::mutex> lock(g_mutex);
     CSimpleIni ini(false, false, false);
     auto cmdRpyFilePath = _strLogCasePath + _CMD_RPY_FILE_NAME;
     ini.LoadFile(cmdRpyFilePath.c_str());
@@ -1281,6 +1309,7 @@ VisionStatus LogCaseLrnTmpl::RunLogCase() {
 }
 
 VisionStatus LogCaseMatchTmpl::WriteCmd(const PR_MATCH_TEMPLATE_CMD *const pstCmd) {
+    std::lock_guard<std::mutex> lock(g_mutex);
     if (!_bReplay) {
         _strLogCasePath = _generateLogCaseName(GetFolderPrefix());
         bfs::path dir(_strLogCasePath);
@@ -1314,6 +1343,7 @@ cv::Rect LogCaseMatchTmpl::_calcLogImageROI(const PR_MATCH_TEMPLATE_CMD *const p
 }
 
 VisionStatus LogCaseMatchTmpl::WriteRpy(const PR_MATCH_TEMPLATE_CMD *const pstCmd, const PR_MATCH_TEMPLATE_RPY *const pstRpy) {
+    std::lock_guard<std::mutex> lock(g_mutex);
     CSimpleIni ini(false, false, false);
     auto cmdRpyFilePath = _strLogCasePath + _CMD_RPY_FILE_NAME;
     ini.LoadFile(cmdRpyFilePath.c_str());
@@ -1355,6 +1385,7 @@ VisionStatus LogCaseMatchTmpl::RunLogCase() {
 }
 
 VisionStatus LogCasePickColor::WriteCmd(const PR_PICK_COLOR_CMD *const pstCmd) {
+    std::lock_guard<std::mutex> lock(g_mutex);
     if (!_bReplay) {
         _strLogCasePath = _generateLogCaseName(GetFolderPrefix());
         bfs::path dir(_strLogCasePath);
@@ -1378,6 +1409,7 @@ VisionStatus LogCasePickColor::WriteCmd(const PR_PICK_COLOR_CMD *const pstCmd) {
 }
 
 VisionStatus LogCasePickColor::WriteRpy(const PR_PICK_COLOR_CMD *const pstCmd, const PR_PICK_COLOR_RPY *const pstRpy) {
+    std::lock_guard<std::mutex> lock(g_mutex);
     CSimpleIni ini(false, false, false);
     auto cmdRpyFilePath = _strLogCasePath + _CMD_RPY_FILE_NAME;
     ini.LoadFile(cmdRpyFilePath.c_str());
@@ -1648,6 +1680,7 @@ VisionStatus LogCaseAutoLocateLead::RunLogCase() {
 }
 
 VisionStatus LogCaseInspBridge::WriteCmd(const PR_INSP_BRIDGE_CMD *const pstCmd) {
+    std::lock_guard<std::mutex> lock(g_mutex);
     if (!_bReplay) {
         _strLogCasePath = _generateLogCaseName(GetFolderPrefix());
         bfs::path dir(_strLogCasePath);
@@ -1692,6 +1725,7 @@ VisionStatus LogCaseInspBridge::WriteCmd(const PR_INSP_BRIDGE_CMD *const pstCmd)
 }
 
 VisionStatus LogCaseInspBridge::WriteRpy(const PR_INSP_BRIDGE_CMD *const pstCmd, PR_INSP_BRIDGE_RPY *const pstRpy) {
+    std::lock_guard<std::mutex> lock(g_mutex);
     CSimpleIni ini(false, false, false);
     auto cmdRpyFilePath = _strLogCasePath + _CMD_RPY_FILE_NAME;
     ini.LoadFile(cmdRpyFilePath.c_str());
@@ -1753,6 +1787,7 @@ VisionStatus LogCaseInspBridge::RunLogCase() {
 }
 
 VisionStatus LogCaseInspChip::WriteCmd(const PR_INSP_CHIP_CMD *const pstCmd) {
+    std::lock_guard<std::mutex> lock(g_mutex);
     if (!_bReplay) {
         _strLogCasePath = _generateLogCaseName(GetFolderPrefix());
         bfs::path dir(_strLogCasePath);
@@ -1772,6 +1807,7 @@ VisionStatus LogCaseInspChip::WriteCmd(const PR_INSP_CHIP_CMD *const pstCmd) {
 }
 
 VisionStatus LogCaseInspChip::WriteRpy(const PR_INSP_CHIP_RPY *const pstRpy) {
+    std::lock_guard<std::mutex> lock(g_mutex);
     CSimpleIni ini(false, false, false);
     auto cmdRpyFilePath = _strLogCasePath + _CMD_RPY_FILE_NAME;
     ini.LoadFile(cmdRpyFilePath.c_str());
@@ -1867,6 +1903,7 @@ VisionStatus LogCaseLrnContour::RunLogCase() {
 }
 
 VisionStatus LogCaseInspContour::WriteCmd(const PR_INSP_CONTOUR_CMD *const pstCmd) {
+    std::lock_guard<std::mutex> lock(g_mutex);
     if (!_bReplay) {
         _strLogCasePath = _generateLogCaseName(GetFolderPrefix());
         bfs::path dir(_strLogCasePath);
@@ -1895,6 +1932,7 @@ VisionStatus LogCaseInspContour::WriteCmd(const PR_INSP_CONTOUR_CMD *const pstCm
 }
 
 VisionStatus LogCaseInspContour::WriteRpy(const PR_INSP_CONTOUR_CMD *const pstCmd, const PR_INSP_CONTOUR_RPY *const pstRpy) {
+    std::lock_guard<std::mutex> lock(g_mutex);
     CSimpleIni ini(false, false, false);
     auto cmdRpyFilePath = _strLogCasePath + _CMD_RPY_FILE_NAME;
     ini.LoadFile(cmdRpyFilePath.c_str());
@@ -1938,6 +1976,7 @@ VisionStatus LogCaseInspContour::RunLogCase() {
 }
 
 VisionStatus LogCaseInspHole::WriteCmd(const PR_INSP_HOLE_CMD *const pstCmd) {
+    std::lock_guard<std::mutex> lock(g_mutex);
     if (!_bReplay) {
         _strLogCasePath = _generateLogCaseName(GetFolderPrefix());
         bfs::path dir(_strLogCasePath);
@@ -1986,6 +2025,7 @@ VisionStatus LogCaseInspHole::WriteCmd(const PR_INSP_HOLE_CMD *const pstCmd) {
 }
 
 VisionStatus LogCaseInspHole::WriteRpy(const PR_INSP_HOLE_CMD *const pstCmd, const PR_INSP_HOLE_RPY *const pstRpy) {
+    std::lock_guard<std::mutex> lock(g_mutex);
     CSimpleIni ini(false, false, false);
     auto cmdRpyFilePath = _strLogCasePath + _CMD_RPY_FILE_NAME;
     ini.LoadFile(cmdRpyFilePath.c_str());
@@ -2049,6 +2089,7 @@ VisionStatus LogCaseInspHole::RunLogCase() {
 }
 
 VisionStatus LogCaseInspLead::WriteCmd(const PR_INSP_LEAD_CMD *const pstCmd) {
+    std::lock_guard<std::mutex> lock(g_mutex);
     if (!_bReplay) {
         _strLogCasePath = _generateLogCaseName(GetFolderPrefix());
         bfs::path dir(_strLogCasePath);
@@ -2092,6 +2133,7 @@ VisionStatus LogCaseInspLead::WriteCmd(const PR_INSP_LEAD_CMD *const pstCmd) {
 }
 
 VisionStatus LogCaseInspLead::WriteRpy(const PR_INSP_LEAD_RPY *const pstRpy) {
+    std::lock_guard<std::mutex> lock(g_mutex);
     CSimpleIni ini(false, false, false);
     auto cmdRpyFilePath = _strLogCasePath + _CMD_RPY_FILE_NAME;
     ini.LoadFile(cmdRpyFilePath.c_str());
@@ -2162,6 +2204,7 @@ VisionStatus LogCaseInspLead::RunLogCase() {
 }
 
 VisionStatus LogCaseInspLeadTmpl::WriteCmd(const PR_INSP_LEAD_TMPL_CMD *const pstCmd) {
+    std::lock_guard<std::mutex> lock(g_mutex);
     if (!_bReplay) {
         _strLogCasePath = _generateLogCaseName(GetFolderPrefix());
         bfs::path dir(_strLogCasePath);
@@ -2188,6 +2231,7 @@ VisionStatus LogCaseInspLeadTmpl::WriteCmd(const PR_INSP_LEAD_TMPL_CMD *const ps
 }
 
 VisionStatus LogCaseInspLeadTmpl::WriteRpy(const PR_INSP_LEAD_TMPL_CMD *const pstCmd, const PR_INSP_LEAD_TMPL_RPY *const pstRpy) {
+    std::lock_guard<std::mutex> lock(g_mutex);
     CSimpleIni ini(false, false, false);
     auto cmdRpyFilePath = _strLogCasePath + _CMD_RPY_FILE_NAME;
     ini.LoadFile(cmdRpyFilePath.c_str());
@@ -2231,6 +2275,7 @@ VisionStatus LogCaseInspLeadTmpl::RunLogCase() {
 }
 
 VisionStatus LogCaseInspPolarity::WriteCmd(const PR_INSP_POLARITY_CMD *const pstCmd) {
+    std::lock_guard<std::mutex> lock(g_mutex);
     if (!_bReplay) {
         _strLogCasePath = _generateLogCaseName(GetFolderPrefix());
         bfs::path dir(_strLogCasePath);
@@ -2256,6 +2301,7 @@ VisionStatus LogCaseInspPolarity::WriteCmd(const PR_INSP_POLARITY_CMD *const pst
 }
 
 VisionStatus LogCaseInspPolarity::WriteRpy(const PR_INSP_POLARITY_CMD *const pstCmd, const PR_INSP_POLARITY_RPY *const pstRpy) {
+    std::lock_guard<std::mutex> lock(g_mutex);
     CSimpleIni ini(false, false, false);
     auto cmdRpyFilePath = _strLogCasePath + _CMD_RPY_FILE_NAME;
     ini.LoadFile(cmdRpyFilePath.c_str());
@@ -2676,6 +2722,7 @@ VisionStatus LogCaseLrnOcv::RunLogCase() {
 }
 
 VisionStatus LogCaseOcv::WriteCmd(const PR_OCV_CMD *const pstCmd) {
+    std::lock_guard<std::mutex> lock(g_mutex);
     if (!_bReplay) {
         _strLogCasePath = _generateLogCaseName(GetFolderPrefix());
         bfs::path dir(_strLogCasePath);
@@ -2702,6 +2749,7 @@ VisionStatus LogCaseOcv::WriteCmd(const PR_OCV_CMD *const pstCmd) {
 }
 
 VisionStatus LogCaseOcv::WriteRpy(const PR_OCV_CMD *const pstCmd, const PR_OCV_RPY *const pstRpy) {
+    std::lock_guard<std::mutex> lock(g_mutex);
     CSimpleIni ini(false, false, false);
     auto cmdRpyFilePath = _strLogCasePath + _CMD_RPY_FILE_NAME;
     ini.LoadFile(cmdRpyFilePath.c_str());
@@ -2745,6 +2793,7 @@ VisionStatus LogCaseOcv::RunLogCase() {
 }
 
 VisionStatus LogCase2DCode::WriteCmd(const PR_READ_2DCODE_CMD *const pstCmd) {
+    std::lock_guard<std::mutex> lock(g_mutex);
     if (!_bReplay) {
         _strLogCasePath = _generateLogCaseName(GetFolderPrefix());
         bfs::path dir(_strLogCasePath);
@@ -2764,6 +2813,7 @@ VisionStatus LogCase2DCode::WriteCmd(const PR_READ_2DCODE_CMD *const pstCmd) {
 }
 
 VisionStatus LogCase2DCode::WriteRpy(const PR_READ_2DCODE_RPY *const pstRpy) {
+    std::lock_guard<std::mutex> lock(g_mutex);
     CSimpleIni ini(false, false, false);
     auto cmdRpyFilePath = _strLogCasePath + _CMD_RPY_FILE_NAME;
     ini.LoadFile(cmdRpyFilePath.c_str());
@@ -2800,6 +2850,7 @@ VisionStatus LogCase2DCode::RunLogCase() {
 }
 
 VisionStatus LogCaseInsp3DSolder::WriteCmd(const PR_INSP_3D_SOLDER_CMD *const pstCmd) {
+    std::lock_guard<std::mutex> lock(g_mutex);
     if (!_bReplay) {
         _strLogCasePath = _generateLogCaseName(GetFolderPrefix());
         bfs::path dir(_strLogCasePath);
@@ -2838,6 +2889,7 @@ VisionStatus LogCaseInsp3DSolder::WriteCmd(const PR_INSP_3D_SOLDER_CMD *const ps
 }
 
 VisionStatus LogCaseInsp3DSolder::WriteRpy(const PR_INSP_3D_SOLDER_CMD *const pstCmd, const PR_INSP_3D_SOLDER_RPY *const pstRpy) {
+    std::lock_guard<std::mutex> lock(g_mutex);
     CSimpleIni ini(false, false, false);
     auto cmdRpyFilePath = _strLogCasePath + _CMD_RPY_FILE_NAME;
     ini.LoadFile(cmdRpyFilePath.c_str());
@@ -2900,6 +2952,7 @@ VisionStatus LogCaseInsp3DSolder::RunLogCase() {
 }
 
 VisionStatus LogCaseCalc3DHeightDiff::WriteCmd(const PR_CALC_3D_HEIGHT_DIFF_CMD *const pstCmd) {
+    std::lock_guard<std::mutex> lock(g_mutex);
     if (!_bReplay) {
         _strLogCasePath = _generateLogCaseName(GetFolderPrefix());
         bfs::path dir(_strLogCasePath);
@@ -2948,6 +3001,7 @@ VisionStatus LogCaseCalc3DHeightDiff::WriteCmd(const PR_CALC_3D_HEIGHT_DIFF_CMD 
 }
 
 VisionStatus LogCaseCalc3DHeightDiff::WriteRpy(const PR_CALC_3D_HEIGHT_DIFF_RPY *const pstRpy) {
+    std::lock_guard<std::mutex> lock(g_mutex);
     CSimpleIni ini(false, false, false);
     auto cmdRpyFilePath = _strLogCasePath + _CMD_RPY_FILE_NAME;
     ini.LoadFile(cmdRpyFilePath.c_str());
