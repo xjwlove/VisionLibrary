@@ -4276,14 +4276,14 @@ VisionStatus VisionAlgorithm::_findLineByCaliper(const cv::Mat &matInputImg, con
     }
 
     MARK_FUNCTION_START_TIME;
-    SETUP_LOGCASE(LogCaseRestoreImg);
+    //SETUP_LOGCASE(LogCaseRestoreImg);
 
     cv::Mat matInputFloat = pstCmd->matInputImg;
     cv::remap(matInputFloat, pstRpy->matResultImg, pstCmd->vecMatRestoreMap[0], pstCmd->vecMatRestoreMap[1], cv::InterpolationFlags::INTER_NEAREST);
 
     pstRpy->enStatus = VisionStatus::OK;
 
-    FINISH_LOGCASE;
+    //FINISH_LOGCASE;
     MARK_FUNCTION_END_TIME;
     return pstRpy->enStatus;
 }
